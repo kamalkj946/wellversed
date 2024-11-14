@@ -1,0 +1,178 @@
+<div class="site-mobile-nav 12312312" id="site-mobile-nav" data-mobile-nav tabindex="0">
+  <div class="mobile-nav-panel" data-mobile-nav-panel>
+
+    {% render 'site-header-actions' %}
+
+    <a
+      class="mobile-nav-close"
+      href="#site-header-nav"
+      data-mobile-nav-close>
+      {% render 'icon-menu-close' %}
+      <span class="visually-hidden">{{ 'general.accessibility.close' | t }}</span>
+    </a>
+
+    <div class="mobile-nav-content 456456" data-mobile-nav-content>
+      {%
+        render 'mobile-nav-list',
+        menu: section.settings.menu,
+        blocks: blocks,
+      %}
+
+      {% if section.settings.secondary_menu != blank %}
+        <span class="mobile-nav-content__border"></span>
+        <div class="mobile-nav-content__secondary-menu">
+          {%
+            render 'navlist',
+            menu_list: linklists[section.settings.secondary_menu].links,
+            depth: 1,
+            max_depth: 1,
+            aria_expanded: true,
+          %}
+        </div>
+      {% endif %}
+    </div>
+    <div class="utility-bar__mobile-disclosure" data-utility-mobile></div>
+  </div>
+
+  <div class="mobile-nav-overlay" data-mobile-nav-overlay></div>
+</div>
+
+
+
+<script>
+
+if(window.innerWidth < 1025) {
+
+  var x = document.querySelectorAll('.mobile-nav-content details');
+  for (let i = 0; i < x.length; i++) {
+      var y = x[i].querySelector('ul');
+      var d = y.querySelectorAll('li').length;
+      var z = x[i].querySelector('summary');
+      var k = x[i].querySelector('summary').getAttribute('data-href')
+      var c = x[i].querySelector('summary').innerHTML;
+    // console.log('-----------------------')
+    // console.log(d)
+      if(d === 0){
+        y.remove();
+        // console.log('-------------------1----------------');
+        var a = document.createElement('a');
+        // console.log('-------------------2-----------------');
+        a.innerHTML = c;
+        // console.log('-------------------3-----------------');
+        a.setAttribute('href', k);
+        // console.log('-------------------4-----------------');
+        z.after(a);
+        // console.log('-------------------5-----------------');
+        z.remove();
+        // console.log('-------------------6-----------------');
+        var m = x[i].innerHTML;
+        // console.log('-------------------7-----------------');
+        var div = document.createElement('div');
+        // console.log('-------------------8-----------------');
+        div.classList.add('menu__wrap');
+        // console.log('-------------------9-----------------');
+        div.innerHTML = m;
+        // console.log('-------------------10-----------------');
+        x[i].after(div);
+        // console.log('-------------------11-----------------');
+        x[i].remove();
+      }
+
+    var r = x[i].querySelectorAll('.navmenu-depth-3');
+    if(r.length > 0 ) {
+       x[i].classList.add('menu__deep')
+    }
+    
+  }
+}
+
+  
+</script>
+
+<script>
+if(window.innerWidth < 1025) {
+  var deepMenuSum = document.querySelectorAll('.mobile-nav-content > ul > li > details.menu__deep .navmenu-submenu.navmenu-meganav ul li details.menu__deep summary')
+  var deepMenuUl = document.querySelectorAll('.mobile-nav-content>ul>li>details.menu__deep .navmenu-submenu.navmenu-meganav ul li details.menu__deep ul.navmenu-depth-3')
+  for (let i = 0; i < deepMenuSum.length; i++) {
+      deepMenuSum[i].addEventListener('click', () => {
+          deepMenuUl[i].classList.add('show'); 
+      })
+  }
+}  
+</script>
+
+<script>
+if(window.innerWidth < 1025) {
+  function openFunction(e) {
+      e.classList.add('min');
+      e.nextElementSibling.classList.toggle('open');
+  } 
+}
+</script>          
+
+
+
+<!-- script to add links for nonsubmenu items Added on 17-june-2024 by obbserv -->
+<!-- start -->
+<script>
+if (window.innerWidth < 1025) {
+  var detailsElements = document.querySelectorAll('.mobile-nav-content details');
+
+  detailsElements.forEach(details => {
+    var summary = details.querySelector('summary');
+    var ul = details.querySelector('ul');
+
+    // Check if the <details> element does not contain a submenu (<ul> with <li> elements)
+    if (!ul || ul.querySelectorAll('li').length === 0) {
+      if (ul) {
+        ul.remove();
+      }
+
+      var linkHref = summary.getAttribute('data-href');
+      var linkText = summary.innerHTML;
+
+      var anchor = document.createElement('a');
+      anchor.setAttribute('href', linkHref);
+      anchor.innerHTML = linkText;
+
+      summary.after(anchor);
+      summary.remove();
+
+      var div = document.createElement('div');
+      div.classList.add('menu__wrap');
+      div.innerHTML = details.innerHTML;
+
+      details.after(div);
+      details.remove();
+    } else {
+      // Add 'menu__deep' class if there are elements with class 'navmenu-depth-3'
+      if (details.querySelector('.navmenu-depth-3')) {
+        details.classList.add('menu__deep');
+      }
+    }
+  });
+
+  // Handle click events for deep menus
+  var deepMenuSummaries = document.querySelectorAll('.mobile-nav-content > ul > li > details.menu__deep .navmenu-submenu.navmenu-meganav ul li details.menu__deep summary');
+  var deepMenuUls = document.querySelectorAll('.mobile-nav-content > ul > li > details.menu__deep .navmenu-submenu.navmenu-meganav ul li details.menu__deep ul.navmenu-depth-3');
+
+  deepMenuSummaries.forEach((summary, index) => {
+    summary.addEventListener('click', () => {
+      deepMenuUls[index].classList.add('show');
+    });
+  });
+}
+
+if (window.innerWidth < 1025) {
+  function openFunction(e) {
+    e.classList.add('min');
+    e.nextElementSibling.classList.toggle('open');
+  }
+}
+</script>
+
+<!-- ends -->
+
+
+
+

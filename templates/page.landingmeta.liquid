@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .banner {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 20px;
+      /* Add more styling as needed */
+    }
+    .banner img {
+      width: 100%;
+      height: auto;
+      /* Adjust as necessary to fit your design */
+    }
+    .featured-collection {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
+    .product {
+      width: 30%;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .shop-now-button-img {
+      display: block;
+      width: 200px; /* Adjust as necessary */
+      height: auto;
+      margin: 20px auto; /* Center the image */
+    }
+
+    /* Media query for devices with width up to 768px */
+    @media (max-width: 768px) {
+      .product {
+        width: 45%; /* Adjust product width for smaller screens */
+      }
+    }
+
+    /* Media query for devices with width up to 480px */
+    @media (max-width: 480px) {
+      .featured-collection {
+        flex-direction: column; /* Stack products vertically on very small screens */
+        align-items: center;
+      }
+      .product {
+        width: 80%; /* Further adjust product width for very small screens */
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Banner Section -->
+<div class="banner">
+  <img src="https://wellversed.in/cdn/shop/files/FINAL___YWF_Omega-3___Website_Banner_1920x.jpg?v=1705495506" alt="Banner">
+</div>
+
+<div class="featured-collection">
+  {% assign collection = collections['zero-sugar'] %}
+  {% for product in collection.products %}
+    <div class="product">
+      <img src="{{ product.featured_image | img_url: '300x300' }}" alt="{{ product.title }}">
+      <h2>{{ product.title }}</h2>
+      <p>{{ product.price | money }}</p>
+      {% if product.metafields.my_fields.external_url %}
+        <a href="{{ product.metafields.my_fields.external_url }}" target="_blank">
+          <img src="https://i.pinimg.com/originals/75/19/72/75197219cb0da0c45ebdb03ff17dddd8.png" alt="Shop Now" class="shop-now-button-img"/>
+        </a>
+      {% else %}
+        <a href="{{ product.url }}">
+          <img src="https://i.pinimg.com/originals/75/19/72/75197219cb0da0c45ebdb03ff17dddd8.png" alt="Shop Now" class="shop-now-button-img"/>
+        </a>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+</body>
+</html>

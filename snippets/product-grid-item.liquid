@@ -1,0 +1,722 @@
+{% comment %}
+  @param product {Object}
+    Required to show product information
+
+  @param recently_viewed {Boolean}
+    Render card in recently viewed style
+
+  @param countdown_timer {Boolean}
+    Render card in countdown timer style
+
+  @param product_compare {Boolean}
+    Render card in product compare style
+{% endcomment %}
+
+{% assign recently_viewed = recently_viewed | default: nil %}
+{% assign countdown_timer = countdown_timer | default: nil %}
+{% assign product_compare = product_compare | default: nil %}
+
+{% assign product_grid_show_second_image = settings.product_grid_show_second_image %}
+{% assign emphasize_price = settings.product_grid_emphasize_price %}
+{% assign quick_shop_display = settings.product_grid_quick_shop_display %}
+{% assign enable_quickshop = settings.product_grid_enable_quickshop %}
+{% assign atc_display = settings.product_grid_show_atc %}
+{% assign atc_button = settings.product_grid_show_atc_button %}
+{% assign money_format = shop.money_format | strip_html %}
+
+{% if product_compare %}
+  {% assign enable_quickshop = false %}
+  {% assign atc_button = true %}
+{% endif %}
+
+{% if product %}
+  {% assign compare_at_price = product.compare_at_price %}
+  {% assign compare_at_price_varies = product.compare_at_price_varies %}
+  {% assign price = product.price %}
+  {% assign price_varies = product.price_varies %}
+  {% assign product_available = product.available %}
+  {% assign product_title = product.title %}
+  {% assign product_vendor = product.vendor %}
+  {% assign product_link = product.url | within: collection %}
+  {% assign product_description = product.description | strip_html %}
+  {% assign product_description_size = product.description | strip_html | size %}
+  {% if recently_viewed == true %}
+    {%- capture recently_viewed_header -%}
+    <div class="product-recently-viewed-card-time" data-product-handle="{{product.handle}}">
+      <button
+        class="product-recently-viewed-card-remove"
+        aria-label="close"
+        data-remove-recently-viewed
+      >
+        {%
+          render 'icon-library',
+          id: 'icon-remove',
+        %}
+      </button>
+    </div>
+    {%- endcapture -%}
+  {% endif %}
+{% else %}
+  {% assign onboarding = true %}
+  {% assign compare_at_price = 1999 %}
+  {% assign compare_at_price_varies = false %}
+  {% assign price = 1999 %}
+  {% assign price_varies = false %}
+  {% assign product_available = true %}
+  {% assign product_title = 'onboarding.product.title' | t %}
+  {% assign product_vendor = 'onboarding.product.vendor' | t %}
+  {% assign product_link = '#' %}
+{% endif %}
+
+{% assign on_sale = false %}
+{% for variant in product.variants %}
+  {% if variant.compare_at_price > variant.price %}
+    {% assign on_sale = true %}
+    {% break %}
+  {% endif %}
+{% endfor %}
+
+{% assign has_variants = false %}
+{% unless product.has_only_default_variant %}
+  {% assign has_variants = false %}
+  {% comment %}    {% assign has_variants = true %} {% endcomment %}
+{% endunless %}
+
+{% assign consistent_saved = false %}
+{% capture consistent_savings %}
+  {%
+    render 'consistent-savings',
+    variants: product.variants,
+    on_sale: on_sale
+  %}
+{% endcapture %}
+{% if consistent_savings contains 'true' %}
+  {% assign consistent_saved = true %}
+{% endif %}
+
+{%- capture classes -%}
+  productgrid--item
+  imagestyle--{% if settings.product_grid_image_crop and settings.product_grid_image_style != 'natural' %}cropped-{% endif %}{{ settings.product_grid_image_style }}
+  {% unless product.featured_media.preview_image %}imagestyle--no-image{% endunless %}
+  {% if on_sale %}productitem--sale{% endif %}
+  {% if emphasize_price %}productitem--emphasis{% endif %}
+  {% if recently_viewed %}product-recently-viewed-card{% endif %}
+  {% if product_compare %}product-compare-card{% endif %}
+  {% if atc_display == 'always' or quick_shop_display == 'always' %}show-actions--mobile{% endif %}
+{%- endcapture -%}
+
+{%- assign show_swatches = false -%}
+  {% assign initial_image = product.featured_media.preview_image.src %}
+  {%- if settings.swatches_enable and recently_viewed != true -%}
+    {% comment %} Check if product should show swatches {% endcomment %}
+    {%- for option in product.options_with_values -%}
+      {%- assign swatch_trigger = settings.swatches_swatch_trigger | strip | downcase -%}
+      {%- assign option_name = option.name | downcase -%}
+      {%- if option_name == swatch_trigger -%}
+        {%- assign show_swatches = true -%}
+        {%- assign swatch_values = option.values -%}
+        {%- assign swatch_values_count = option.values.size -%}
+        {%- assign swatch_option_key = 'option' | append: forloop.index -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {% if section.settings.filter_style == 'groups' and current_tags and show_swatches %}
+      {% comment %} We are filtered by tags, so check and see if it's filtering by swatch {% endcomment %}
+      {% for tag in current_tags %}
+        {% assign tag_group = tag | split: '_' | first | downcase %}
+        {% if tag_group == swatch_trigger %}
+          {% assign active_swatch_name = tag | split: '_' | last | downcase %}
+
+          {% comment %} Filter variants by swatch (for ex. where color == blue). Can't use | where due to case sensitivity {% endcomment %}
+          {% for variant in product.variants %}
+            {% assign option_value = variant[swatch_option_key] | downcase %}
+            {% if option_value == active_swatch_name %}
+              {% if variant.image %}
+                {% assign initial_image = variant.image %}
+              {% endif %}
+              {% break %}
+            {% endif %}
+          {% endfor %}
+          {% break %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    {% capture product_item_swatches %}
+      {%- if show_swatches -%}
+        <div
+          class="
+            productitem--swatches
+            {% if settings.swatches_shape == 'square' and settings.swatches_option_style == 'variant_image' %}
+              swatches-variant-images-square
+            {% endif %}
+          "
+          data-swatches
+        >
+          <script type="application/json" data-swatch-data>
+            {
+              "swatchOptionKey": {{ swatch_option_key | json }},
+              "variants": {{ product.variants | json }}
+            }
+          </script>
+          <form
+            class="productitem--swatches-container"
+            data-swatches-container
+            aria-label="{{ 'general.accessibility.swatch_options' | t: swatch_trigger: settings.swatches_swatch_trigger, product_title: product.title }}"
+          >
+            {% for swatch_value in swatch_values %}
+              {% assign swatch_value_downcased = swatch_value | downcase %}
+              <label>
+                <input
+                  class="productitem--swatches-input sold_out_option--{{ settings.sold_out_options }}"
+                  type="radio"
+                  tabindex="0"
+                  name="swatch"
+                  value="{{ swatch_value | escape }}"
+                  aria-label="{{ swatch_value | escape }}"
+                  {% if swatch_value_downcased == active_swatch_name %}checked{% endif %}
+                >
+                {% assign use_variant_images = false %}
+                {% if settings.swatches_option_style == 'variant_image' %}
+                  {% assign use_variant_images = true %}
+                {% endif %}
+                {% assign use_aspect_ratio = false %}
+                {% if settings.swatches_shape == 'square' %}
+                  {% assign use_aspect_ratio = true %}
+                {% endif %}
+                {%- capture swatch_styles -%}
+                  {%
+                    render 'swatch-styles',
+                    color_name: swatch_value,
+                    use_variant_images: use_variant_images,
+                    swatch_product: product,
+                    swatch_option_key: swatch_option_key,
+                    swatch_size: settings.swatches_product_card_size,
+                    use_aspect_ratio: use_aspect_ratio,
+                  %}
+                {%- endcapture -%}
+                <div
+                  class="productitem--swatches-swatch-wrapper"
+                  data-swatch-tooltip="{{ swatch_value | escape }}"
+                  data-swatch
+                  style="{{ swatch_styles | split: '/* variables */' | last | remove: '/* variables */'}}"
+                >
+                  <div class="productitem--swatches-swatch">
+                    <div
+                      class="productitem--swatches-swatch-inner"
+                      style="
+                        {{ swatch_styles | split: '/* variables */' | first }}
+                        {% comment %} {% if use_variant_images and settings.swatches_shape == 'square' %}border-radius: 0;{% endif %} {% endcomment %}
+                      "
+                    >
+                    </div>
+                  </div>
+                </div>
+              </label>
+            {% endfor %}
+          </form>
+          <button
+            class="productitem--swatches-count-wrapper"
+            tabindex="0"
+            data-swatch-count-wrapper
+            aria-label="{{ 'general.accessibility.swatches_toggle' | t: swatch_trigger: settings.swatches_swatch_trigger }}"
+          >
+            <div class="productitem--swatches-count" data-swatch-count>+</div>
+          </button>
+        </div>
+      {%- endif -%}
+    {% endcapture %}
+  {%- endif -%}
+
+{% assign element = 'li' %}
+{% if product_compare %}
+    {% assign element = 'div' %}
+{% endif %}
+
+<{{ element }}
+  class="{{ classes | strip_newlines }}"
+  data-product-item
+  data-product-quickshop-url="{{ product_link }}"
+  {% if recently_viewed %}
+    data-recently-viewed-card
+  {% endif %}
+>
+  <div class="productitem" data-product-item-content>
+    {% comment %}Inject template-allows-compare begin{% endcomment %}
+    {% assign template_allows_compare = settings.enable_product_compare %}
+    {% if template.name == 'cart' %}
+      {% assign template_allows_compare = false %}
+    {% elsif template.name == 'product' and template.suffix contains 'compare' %}
+      {% assign template_allows_compare = false %}
+    {% endif %}
+    {% comment %}Inject template-allows-compare end{% endcomment %}
+
+    {% if onboarding or countdown_timer %}
+      {% assign template_allows_compare = false %}
+    {% endif %}
+
+    {% if template_allows_compare %}
+      {% capture product_compare_image %}
+        {% if initial_image %}
+          {%
+            render 'rimg',
+            img: initial_image
+            size: '250x',
+            lazy: true,
+            class: 'productitem--image-primary',
+            canvas: true,
+            disable_noscript: true,
+          %}
+        {% else %}
+          {{ 'image' | placeholder_svg_tag: 'placeholder--image' }}
+        {% endif %}
+      {% endcapture %}
+
+      {% unless product_compare or recently_viewed %}
+        <script type="application/json" data-product-compare-data>
+          {
+            "title": {{ product.title | json }},
+            "handle": {{ product.handle | json }},
+            "image": {{ product_compare_image | json }},
+            "imageAspectRatio": {{ initial_image.aspect_ratio | default: '1/1' | json }},
+            "url": {{ product.url | json }}
+          }
+        </script>
+
+        <div
+          class="
+            productitem__compare-wrapper
+            productitem__compare-wrapper-{{ settings.product_compare_display }}
+          "
+          data-compare-item-wrapper
+        >
+          <div class="productitem__compare" data-compare-item>
+            <input
+              class="productitem__compare-checkbox"
+              id="productitem__compare-checkbox-{{ product.id }}"
+              type="checkbox"
+              data-compare-checkbox
+            >
+            <label class="productitem__compare-checkbox-label" for="productitem__compare-checkbox-{{ product.id }}">
+              <span class="productitem__compare-checkbox-icon">
+                {%
+                  render 'icon-checkmark-animated',
+                  animation_state: 'unchecked',
+                %}
+              </span>
+              <span class="productitem__compare-checkbox-text">
+                {{ 'product_compare.compare' | t }}
+              </span>
+            </label>
+          </div>
+        </div>
+      {% endunless %}
+    {% endif %}
+
+    <div class="productitem__container">
+      {{ recently_viewed_header }}
+
+      <div class="productitem__image-container">
+
+        {% if customer.id != null %}
+        <div class="Wishlist-design">
+          <label for="Add_to_wishlist" class="Add_to_wishlist" labelid="{{ product.id }}">Add to wishlist</label>
+          <figer id="Add_to_wishlist" class="wishlist-nodeify" onclick="wishlist_nodify(this);"  customer_id="{{ customer.id }}" customer_email="{{ customer.email }}" handel_item="{{ product.handle }}" item_id="{{ product.id }}">
+             <svg svgid="{{ product.id }}" class="" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          </figer>
+        </div>
+{% else %}
+<a href="https://{{ shop.domain }}/account/login"> <div class="Wishlist-design" style="text-decoration: none">
+          <label for="Add_to_wishlist" class="Add_to_wishlist" labelid="{{ product.id }}">Add to wishlist</label>
+          <figer id="Add_to_wishlist" class="wishlist-nodeify" onclick=""  customer_id="" customer_email="{{ customer.email }}" handel_item="{{ product.handle }}" item_id="{{ product.id }}">
+             <svg svgid="{{ product.id }}" class="" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          </figer>
+        </div> </a>
+{% endif %}
+        <a
+          class="productitem--image-link"
+          href="{{ product.url | within: collection }}"
+          aria-label="{{ product.url }}"
+          tabindex="-1"
+          data-product-page-link
+        >
+          <figure
+            class="productitem--image"
+            data-product-item-image
+            {% if settings.product_grid_image_style == 'natural' and initial_image %}
+              style="--product-grid-item-image-aspect-ratio: {{ initial_image.aspect_ratio }};"
+            {% endif %}
+          >
+            {% if initial_image %}
+              {% if product_grid_show_second_image and product.media.size > 1 %}
+                {% assign second_image = product.media[1].preview_image.src %}
+                {%
+                  render 'rimg',
+                  img: second_image,
+                  size: '512x',
+                  lazy: true,
+                  class: 'productitem--image-alternate',
+                  canvas: true
+                %}
+              {% endif %}
+              {%
+                render 'rimg',
+                img: initial_image
+                size: '512x',
+                lazy: true,
+                class: 'productitem--image-primary',
+                canvas: true
+              %}
+            {% else %}
+              {% if product %}
+                {{ 'image' | placeholder_svg_tag: 'placeholder--image' }}
+              {% else %}
+                {%- capture index -%}
+                  {%- cycle '1', '2', '3', '4', '5', '6' -%}
+                {%- endcapture -%}
+                {{ 'product-' | append: index | placeholder_svg_tag: 'placeholder--image' }}
+              {% endif %}
+            {% endif %}
+
+            {%
+              render 'product-badge',
+              product: product,
+              class_root: 'productitem',
+              product_available: product_available,
+              price: price,
+              price_varies: price_varies,
+              compare_at_price: compare_at_price,
+              compare_at_price_varies: compare_at_price_varies,
+              on_sale: on_sale,
+              show_saved: consistent_saved,
+              include_range: true,
+            %}
+          </figure>
+        </a>
+      </div>
+
+      {%- capture product_item_price -%}
+        
+        {%
+          render 'product-price',
+          product: product,
+          class_root: 'productitem',
+          price: price,
+          price_varies: price_varies,
+          compare_at_price: compare_at_price,
+          compare_at_price_varies: compare_at_price_varies,
+          on_sale: on_sale,
+          emphasize_price: emphasize_price,
+          show_original: true,
+          show_range: true,
+          include_unit_price: true,
+          include_hidden_price: false,
+        %}
+      {%- endcapture -%}
+ 
+      <div class="productitem--info">
+        {% unless countdown_timer %}
+        {% comment %}  {{ product_item_swatches }} {% endcomment %}
+        {% endunless %}
+
+        {% if emphasize_price %}
+      {{ product_item_price }} 
+        {% endif %}
+        <div class="review-veg">
+          <div class="loox-rating" data-id="{{ product.id }}" data-rating="{{ product.metafields.loox.avg_rating }}" data-raters="{{ product.metafields.loox.num_reviews }}">{{ product.metafields.loox.avg_rating }}</div>
+          {% if product.metafields.reviews.rating_count > 0 %}
+        <div class="reviews-js">
+          <div class="review-rates">{% if product.metafields.reviews.rating.value.rating  %}{{ product.metafields.reviews.rating.value.rating }}<img src="https://static1.hkrtcdn.com/hknext/static/media/common/misc/small_star_empty.svg">{% endif %}</div>
+          <div class="review-rates-value">{{product.metafields.reviews.rating_count }} {% if product.metafields.reviews.rating_count == 1 %} review {% elsif product.metafields.reviews.rating_count > 1%} reviews {% endif %}</div>
+        </div>
+          {% else %}
+            <div class="reviews-js">
+          <div class="review-rates">0.0 <img src="https://static1.hkrtcdn.com/hknext/static/media/common/misc/small_star_empty.svg"></div>
+          <div class="review-rates-value">0 review</div>
+        </div>
+        {% endif %}
+        <div class="identify-product">
+        {% if product.metafields.custom.prodcut_type_veg_nonveg =='veg' %}
+          <span class="vegnonveg ">
+            <div class="vegnonveg--icon veg undefined undefined" id="veg">
+              <div class="dot">veg</div>
+            </div>
+            <label for="veg">Veg</label>
+          </span>
+          {% elsif product.metafields.custom.prodcut_type_veg_nonveg == 'nonveg' %}
+          <span class="vegnonveg">
+            <div class="vegnonveg--icon nonVeg" id="nonveg">
+              <div class="dot">Nonveg</div>
+            </div>
+            <label for="nonveg">NonVeg</label>
+          </span>
+          {% endif %}</div>
+          </div>
+        <h2 productitem--title class="productitem--title">
+          <a href="{{ product_link }}" data-product-page-link>
+            {{ product_title }}
+          </a>
+        </h2>
+        {% unless product_compare %}
+          {% if settings.product_show_vendor and product.vendor != blank %}
+            <span class="productitem--vendor">
+              {{ product_vendor | link_to_vendor }}
+            </span>
+          {% endif %}
+        {% endunless %}
+
+        {% unless emphasize_price %}
+
+       {% comment %} {{ product_item_price }} {% endcomment %}
+          <div class="price productitem__price data-liquid">
+           <span findreal_price="{{ product.price | money_without_currency }}" class="money price__current--min" data-price-min>₹{{ product.price | money_without_currency }}</span>
+
+<span findcompare_price="{{ product.compare_at_price | money_without_currency }}" findcompare_at="{{ product.price | money_without_currency }}" class="money price__current--max data-liquid-code" data-price-max>₹{{ product.compare_at_price | money_without_currency }}</span>
+<span class="savemoney"></span>
+            
+          </div>
+
+        {% endunless %}
+{% assign quick_buy_text = 'product.buttons.add_to_cart' | t %}
+<div class="productitem--action atc--button {% if atc_display == 'desktop' %}productitem-action--desktop{% endif %}">
+              <button
+  class="{{ quick_buy_classes }}"
+ id="grid_AddToCart"
+  type="button" 
+  onclick="get_var_qty(this)"
+  aria-label="{{ quick_buy_text }}"
+  {% unless has_variants %}
+    data-quick-buy
+  {% else %}
+    data-quickshop-slim
+  {% endunless %}
+  data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+  {% if product == false or product_available == false %}
+    disabled
+  {% endif %}
+
+>
+  {% if product == false or product_available == false %}
+    <svg width="18" height="18" viewBox="0 0 25 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M1 0C0.447715 0 0 0.447715 0 1C0 1.55228 0.447715 2 1 2H1.33877H1.33883C1.61048 2.00005 2.00378 2.23945 2.10939 2.81599L2.10937 2.816L2.11046 2.82171L5.01743 18.1859C5.12011 18.7286 5.64325 19.0852 6.18591 18.9826C6.21078 18.9779 6.23526 18.9723 6.25933 18.9658C6.28646 18.968 6.31389 18.9692 6.34159 18.9692H18.8179H18.8181C19.0302 18.9691 19.2141 18.9765 19.4075 18.9842L19.4077 18.9842C19.5113 18.9884 19.6175 18.9926 19.7323 18.9959C20.0255 19.0043 20.3767 19.0061 20.7177 18.9406C21.08 18.871 21.4685 18.7189 21.8028 18.3961C22.1291 18.081 22.3266 17.6772 22.4479 17.2384C22.4569 17.2058 22.4642 17.1729 22.4699 17.1396L23.944 8.46865C24.2528 7.20993 23.2684 5.99987 21.9896 6H21.9894H4.74727L4.07666 2.45562L4.07608 2.4525C3.83133 1.12381 2.76159 8.49962e-05 1.33889 0H1.33883H1ZM5.12568 8L6.8227 16.9692H18.8178H18.8179C19.0686 16.9691 19.3257 16.9793 19.5406 16.9877L19.5413 16.9877C19.633 16.9913 19.7171 16.9947 19.7896 16.9967C20.0684 17.0047 20.2307 16.9976 20.3403 16.9766C20.3841 16.9681 20.4059 16.96 20.4151 16.9556C20.4247 16.9443 20.4639 16.8918 20.5077 16.7487L21.9794 8.09186C21.9842 8.06359 21.9902 8.03555 21.9974 8.0078C21.9941 8.00358 21.9908 8.00108 21.989 8H5.12568ZM20.416 16.9552C20.4195 16.9534 20.4208 16.9524 20.4205 16.9523C20.4204 16.9523 20.4199 16.9525 20.4191 16.953L20.416 16.9552ZM10.8666 22.4326C10.8666 23.2982 10.195 24 9.36658 24C8.53815 24 7.86658 23.2982 7.86658 22.4326C7.86658 21.567 8.53815 20.8653 9.36658 20.8653C10.195 20.8653 10.8666 21.567 10.8666 22.4326ZM18.0048 24C18.8332 24 19.5048 23.2982 19.5048 22.4326C19.5048 21.567 18.8332 20.8653 18.0048 20.8653C17.1763 20.8653 16.5048 21.567 16.5048 22.4326C16.5048 23.2982 17.1763 24 18.0048 24Z" fill="currentColor"></path>
+    </svg>
+    Sold out
+  {% else %}
+    <svg width="18" height="18" viewBox="0 0 25 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M1 0C0.447715 0 0 0.447715 0 1C0 1.55228 0.447715 2 1 2H1.33877H1.33883C1.61048 2.00005 2.00378 2.23945 2.10939 2.81599L2.10937 2.816L2.11046 2.82171L5.01743 18.1859C5.12011 18.7286 5.64325 19.0852 6.18591 18.9826C6.21078 18.9779 6.23526 18.9723 6.25933 18.9658C6.28646 18.968 6.31389 18.9692 6.34159 18.9692H18.8179H18.8181C19.0302 18.9691 19.2141 18.9765 19.4075 18.9842L19.4077 18.9842C19.5113 18.9884 19.6175 18.9926 19.7323 18.9959C20.0255 19.0043 20.3767 19.0061 20.7177 18.9406C21.08 18.871 21.4685 18.7189 21.8028 18.3961C22.1291 18.081 22.3266 17.6772 22.4479 17.2384C22.4569 17.2058 22.4642 17.1729 22.4699 17.1396L23.944 8.46865C24.2528 7.20993 23.2684 5.99987 21.9896 6H21.9894H4.74727L4.07666 2.45562L4.07608 2.4525C3.83133 1.12381 2.76159 8.49962e-05 1.33889 0H1.33883H1ZM5.12568 8L6.8227 16.9692H18.8178H18.8179C19.0686 16.9691 19.3257 16.9793 19.5406 16.9877L19.5413 16.9877C19.633 16.9913 19.7171 16.9947 19.7896 16.9967C20.0684 17.0047 20.2307 16.9976 20.3403 16.9766C20.3841 16.9681 20.4059 16.96 20.4151 16.9556C20.4247 16.9443 20.4639 16.8918 20.5077 16.7487L21.9794 8.09186C21.9842 8.06359 21.9902 8.03555 21.9974 8.0078C21.9941 8.00358 21.9908 8.00108 21.989 8H5.12568ZM20.416 16.9552C20.4195 16.9534 20.4208 16.9524 20.4205 16.9523C20.4204 16.9523 20.4199 16.9525 20.4191 16.953L20.416 16.9552ZM10.8666 22.4326C10.8666 23.2982 10.195 24 9.36658 24C8.53815 24 7.86658 23.2982 7.86658 22.4326C7.86658 21.567 8.53815 20.8653 9.36658 20.8653C10.195 20.8653 10.8666 21.567 10.8666 22.4326ZM18.0048 24C18.8332 24 19.5048 23.2982 19.5048 22.4326C19.5048 21.567 18.8332 20.8653 18.0048 20.8653C17.1763 20.8653 16.5048 21.567 16.5048 22.4326C16.5048 23.2982 17.1763 24 18.0048 24Z" fill="currentColor"></path>
+    </svg>
+    Add to cart
+  {% endif %}
+</button>
+
+              </div>
+        {% unless product_compare %}
+          {% if settings.inventory_status %}
+            <div class="productitem__stock-level">
+              {%
+                render 'product-stock-level',
+                inventory_display: settings.inventory_display,
+                inventory_transfer: settings.inventory_transfer_notice,
+                variant: product.selected_or_first_available_variant,
+                verbose: false,
+              %}
+            </div>
+          {% endif %}
+
+          {% unless countdown_timer %}
+            {% if settings.product_ratings_star_display and product.metafields.reviews.rating.value != blank %}
+              <div test1 class="product__rating rating">
+                {%
+                  render 'rating-stars',
+                  value: product.metafields.reviews.rating.value.rating,
+                  scale_max: product.metafields.reviews.rating.value.scale_max,
+                %}
+
+                <p class="rating__text">
+                  <span aria-hidden="true">
+                    {{ product.metafields.reviews.rating.value }} / {{ product.metafields.reviews.rating.value.scale_max }}
+                  </span>
+                </p>
+
+                <p class="rating__count">
+                  <span aria-hidden="true">
+                    {{ product.metafields.reviews.rating_count }}
+                    {% if product.metafields.reviews.rating_count > 1 %}
+                      {{ "general.accessibility.star_reviews_text" | t }}
+                    {% else %}
+                      {{ "general.accessibility.star_review_text" | t }}
+                    {% endif %}
+                  </span>
+                </p>
+              </div>
+            {% endif %}
+          {% endunless %}
+        {% endunless %}
+
+        {% if product_description %}
+          <div class="productitem--description">
+            <p>{{ product_description | truncate: 150 }}</p>
+
+            {% if product_description_size > 150 and product_link %}
+              <a
+                href="{{ product_link }}"
+                class="productitem--link"
+                data-product-page-link
+              >
+                {{ 'product.buttons.view_details' | t }}
+              </a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+
+      {% unless recently_viewed or countdown_timer %}
+        {% if enable_quickshop or atc_button %}
+          {% comment %}
+            Default button appearance and text
+          {% endcomment %}
+          {% assign quick_shop_text = 'product.buttons.quick_shop' | t %}
+          {% assign quick_buy_text = 'product.buttons.add_to_cart' | t %}
+
+          {% assign quick_shop_classes = 'productitem--action-trigger button-secondary' %}
+          {% assign quick_buy_classes = 'productitem--action-trigger productitem--action-atc button-primary data-addcart' %}
+
+          {% if has_variants %}
+            {% assign quick_buy_text = 'product.buttons.choose_options' | t %}
+          {% else %}
+            {% if product.template_suffix contains 'pre-order' %}
+              {% assign quick_buy_text = 'product.buttons.pre_order' | t %}
+            {% endif %}
+          {% endif %}
+
+          {% unless product_available %}
+            {% assign quick_buy_text = 'product.buttons.sold_out' | t %}
+            {% assign quick_buy_classes = quick_buy_classes | append: ' disabled' %}
+          {% endunless %}
+
+          <div class="productitem--actions" data-product-actions>
+            <div class="productitem--listview-price">
+
+            </div>
+
+            <div class="productitem--listview-badge">
+              {%
+                render 'product-badge',
+                product: product,
+                class_root: 'productitem',
+                product_available: product_available,
+                price: price,
+                price_varies: price_varies,
+                compare_at_price: compare_at_price,
+                compare_at_price_varies: compare_at_price_varies,
+                on_sale: on_sale,
+                show_saved: consistent_saved,
+                include_range: true,
+              %}
+            </div>
+
+            {% if enable_quickshop %}
+              <div
+                class="
+                  productitem--action
+                  quickshop-button
+                  {% if quick_shop_display == 'desktop' %}productitem-action--desktop{% endif %}
+                "
+              >
+                <button
+                  class="{{ quick_shop_classes }}"
+                  data-quickshop-full
+                  {% if settings.gallery_thumbnail_position == 'left' %}
+                    data-thumbs-left
+                  {% endif %}
+                  {% if product == false %}
+                    disabled
+                  {% endif %}
+                  type="button"
+                >
+                  {{ quick_shop_text }}
+                </button>
+              </div>
+            {% endif %}
+          </div>
+              
+        {% endif %}
+      {% endunless %}
+    </div>
+  </div>
+
+  {% if atc_button %}
+    <script type="application/json" data-quick-buy-settings>
+      {
+        "cart_redirection": {{ settings.enable_cart_redirection | json }},
+        "money_format": {{ shop.money_format | strip_html | json }}
+      }
+    </script>
+  {% endif %}
+</{{ element }}>
+<script>
+
+setTimeout(function () {
+    var ratingElement = document.querySelectorAll('.loox-rating-label');
+
+ratingElement.forEach(function(value, index){
+
+    if (value) {
+    value.innerHTML = value.innerHTML.replace(/[()]/g, '');
+  }
+})
+
+  // $('.loox-rating-label').show();
+
+}, 5000);
+</script>
+  
+<style>
+  .productitem--info .loox-rating {
+    position: relative;
+    padding-left: 5px;
+    color: #fff;
+    /* min-width: 54px;
+    height: 25px; */
+    display: flex;
+    align-items: center;
+    padding-right: 3px;
+}
+ .productitem--info .loox-rating::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #2eb4ac;
+    z-index: -1;
+    border-radius: 3px;
+    
+}
+ .productitem--info .loox-rating-content {
+    margin-left: 5px;
+}
+ .productitem--info .loox-rating-content .loox-icon {
+    display: none;
+}
+ .productitem--info .loox-rating-content .loox-icon:nth-child(1) {
+    display: block;
+    fill: #fff;
+    color: #fff;
+    position: relative;
+    top: -2px;
+}
+ .productitem--info span.loox-rating-label {
+    margin-left: 10px;
+    color: #000;
+       position: relative;
+    display:none;
+}
+ .productitem--info span.loox-rating-label::after {
+    content: "reviews";
+    left: 5px;
+    position: relative;
+    
+}
+</style>

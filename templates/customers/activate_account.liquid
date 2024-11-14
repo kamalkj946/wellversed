@@ -1,0 +1,6 @@
+{% if shop.metafields.simply-otp-login.otp_login_enabled.value %}
+	{% section 'otp-activate-login' %}
+{% else %}
+	{% section 'activateaccount' %}
+
+{% endif %}

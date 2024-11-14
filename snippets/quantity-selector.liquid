@@ -1,0 +1,115 @@
+{% comment %}
+  @param context {String}
+    The context, either 'product' or 'cart'
+
+  @param item {Object}
+    The cart item object
+{% endcomment %}
+
+{% assign quantity_increment_value = settings.quantity_increment_value %}
+
+<quantity-selector
+  class="quantity-selector"
+  data-quantity-selector
+>
+  <label
+    class="quantity-selector__label"
+    for="
+      {%- if context == 'product' -%}
+        quantity-selector__input-{{ section.id }}
+      {%- else -%}
+        updates_{{ item.key }}
+      {%- endif -%}
+    "
+  >
+    {{- 'general.general.quantity' | t -}}
+  </label>
+
+  <div class="quantity-selector__wrapper">
+    <div
+      class="
+        quantity-selector__button-wrapper
+        quantity-selector__button-wrapper--minus
+        quantity-selector__button-wrapper--disabled
+      "
+      data-button-wrapper
+      data-button-wrapper-minus
+    >
+      <button
+        class="
+          quantity-selector__button
+          quantity-selector__button--minus
+        "
+        type="button"
+        name="minus"
+        aria-label="{{ 'general.accessibility.decrease_quantity' | t: increment: quantity_increment_value }}"
+        data-quantity-minus
+      >
+        {%
+          render 'icon-library',
+          id: 'icon-minus',
+        %}
+      </button>
+    </div>
+
+{% assign current_url = request.path %}
+{% assign inputValue = 10 %}
+
+{% if context == 'product' %}
+  {% assign inputValue = quantity_increment_value %}
+{% else %}
+  {% assign inputValue = item.quantity %}
+{% endif %}
+
+{% if inputValue > 10 %}
+  {% assign inputValue = 10 %}
+{% endif %}
+
+<input
+  class="quantity-selector__input"
+  id="{% if context == 'product' %}quantity-selector__input-{{ section.id }}{% else %}updates_{{ item.key }}{% endif %}"
+  aria-label="{{ 'general.general.quantity' | t }}"
+  name="{% if context == 'product' %}quantity{% else %}updates[]{% endif %}"
+  type="number"
+  min="1"
+  step="1"
+  var-id="{{ item.variant.id }}"
+  value="{{ inputValue }}"
+  data-quantity-input
+  data-increment-value="{{ quantity_increment_value }}"
+  max="10"
+  {% if current_url contains 'cart' %}
+    readonly="readonly"
+  {% endif %}
+>
+ <div
+      class="
+        quantity-selector__button-wrapper--plus
+        quantity-selector__button-wrapper
+      "
+      data-button-wrapper
+      data-button-wrapper-plus
+    >
+      <button
+        id="PlusButton"
+        class="
+          quantity-selector__button
+          quantity-selector__button--plus
+        "
+        var-id="{{ item.variant.id }}"
+        type="button"
+        name="plus"
+        aria-label="{{ 'general.accessibility.increase_quantity' | t: increment: quantity_increment_value }}"
+        data-quantity-plus
+      >
+        {%
+          render 'icon-library',
+          id: 'icon-plus',
+        %}
+      </button>
+    </div>
+  </div> 
+<div class="custom_heading">
+  <span class="error-message" id="maxValueis" style="display:none;">For Bulk Orders, contact us at <a href="tel:+919319157249">+919319157249</a> or fill out our easy-to-use inquiry form: <a href="https://wellversed.in/pages/bulk-enquiries">https://wellversed.in/pages/bulk-enquiries</a> </span>
+</div>
+</quantity-selector> 

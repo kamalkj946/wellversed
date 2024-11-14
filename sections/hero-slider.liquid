@@ -1,0 +1,262 @@
+<div class="banner-slider-section">
+  <div class="hero-slider" data-flickity='{ "cellAlign": "left", "contain": true, "wrapAround": false, "pageDots": true, "autoPlay": false, "arrowShape":"M65.29 11.99L27.28 50L65.3 87.99L70.25 83.06L37.19 50L70.26 16.94L65.29 11.99Z" }'>
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+      {%- when 'image' -%}
+    <div class="item">
+      <div class="banner-image">
+        {% if block.settings.image.src != blank %}
+           <a class="desktop" href="{{ block.settings.image-url }}"><img src="{{ block.settings.image.src | img_url: "1920x" }}" /></a>
+        {% endif %}
+
+        {% if block.settings.image-mob.src != blank %}
+           <a class="mobile" href="{{ block.settings.image-url }}"><img src="{{ block.settings.image-mob.src | img_url: "767x" }}" /></a>
+        {% endif %}
+        
+      </div>
+      {% if block.settings.collection_tittle != blank %}
+        <div class="banner-content page-width">
+          <h2 class="heading">{{ block.settings.collection_tittle }}</h2>
+          <p class="sub-text">{{ block.settings.sub_text }}</p>
+          {% if block.settings.link != blank %}
+            <a href="{{ block.settings.link }}" class="new-style-button"> Shop Now </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+    {%- when 'video' -%}
+         <div class="item video-banner">
+        {% if block.settings.video-url != blank %}
+          <a href="{{ block.settings.videourl }}">
+           <video class="desktop" muted loop playsinline autoplay>
+              <source src="{{ block.settings.video-url }}" type="video/mp4">
+              <source src="{{ block.settings.video-url }}" type="video/ogg">
+              Your browser does not support the video tag.
+           </video>
+          </a>
+        {% endif %}
+        {% if block.settings.video-url2 != blank %}
+           <a href="{{ block.settings.videourl }}">
+             <video class="mobile" muted loop playsinline autoplay>
+                <source src="{{ block.settings.video-url2 }}" type="video/mp4">
+                <source src="{{ block.settings.video-url2 }}" type="video/ogg">
+                Your browser does not support the video tag.
+             </video>
+           </a>
+         {% endif %}
+         </div>
+    {%- endcase block.type -%}
+    
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": "Banner-Slider",
+    "settings": [
+		
+	],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Banner slider",
+      "settings": [
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "Desktop Image"
+        },
+        {
+          "id": "image-mob",
+          "type": "image_picker",
+          "label": "Mobile Image"
+        },
+          {
+            "type": "url",
+            "id" : "image-url",
+            "label": "Image Url"
+          },
+		{
+          "type": "text",
+          "id": "collection_tittle",
+          "label": "Collection title"
+        },
+		{
+          "type": "text",
+          "id": "sub_text",
+          "label": "Collection title"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Collection Link"
+        }
+      ]
+    },
+    {
+      "type": "video",
+      "name": "Banner video",
+      "settings": [
+        {
+          "type": "url",
+          "id": "video-url",
+          "label": "Banner-video"
+        },
+        {
+          "type": "url",
+          "id": "video-url2",
+          "label": "Mobile-Banner-video"
+        },
+        {
+          "type": "url",
+          "id": "videourl",
+          "label": "MobilevideoURL"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "category": "Image",
+      "name": "Banner-slider",
+      "blocks": [
+        {
+          "type": "image"
+        }
+      ]
+    }
+  ]		 
+ }
+{% endschema %}
+
+
+{% stylesheet %}
+
+  .banner-slider-section .flickity-button {
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: #fff!important;
+    color: #000;
+    border-radius: 24px;
+    box-shadow: 0 0 0 1px #7f7f7f0d, 0 2px 5px #7f7f7f80;
+    transition: transform .15s cubic-bezier(.4,0,.2,1),box-shadow .15s cubic-bezier(.4,0,.2,1),opacity .15s cubic-bezier(.4,0,.2,1);
+}
+ .hero-slider{
+  display: none;
+}
+.hero-slider.flickity-enabled {
+    display: block;
+}
+  .hero-slider .item {
+    width: 100%;
+}
+  .hero-slider .item .desktop {
+    display: block;
+    line-height: 0;
+}
+.hero-slider.slick-initialized{
+  display:block;
+} 
+.video-banner video {
+    width: 100%;
+  display:block;
+}
+
+.hero-slider .slick-prev {
+    left: 25px!important;
+}
+.hero-slider .slick-next {
+    right: 25px!important;
+}
+.hero-slider .slick-dots li button:before {
+    width: 10px;
+    height: 10px;
+    content: "";
+    background: #121212;
+    border-radius: 50%;
+    margin: 10px auto auto;
+    opacity: .25;
+    color: #000;
+}
+.hero-slider .slick-dots li.slick-active button:before {
+	opacity: .75;
+    color: #000;
+}
+.hero-slider .banner-image img {
+  width: 100%;
+}
+
+.hero-slider {
+  position: relative;
+  z-index: 1;
+}
+.hero-slider .video-banner .mobile {
+    display: none;
+}
+.hero-slider .banner-image .mobile {
+    display: none;
+}
+.banner-content {
+  position: absolute;
+  top: 50%;
+  transform: translate(0%, -10%);
+  max-width: 60rem;
+  transition: all 1.8s ease-in-out;
+  margin-left: 1%;
+}
+
+.hero-slider .slick-current.slick-active .banner-content {
+  transform: translate(0%, -50%);
+}
+
+.banner-content .heading {
+  font-size: 40x;
+  font-family: Times New Roman !important;
+  color: #fff;
+  margin: 0px;
+}
+
+.banner-content .sub-text {
+  color: #fff;
+  font-size: 18px;
+}
+  
+  
+
+.banner-content .button:after {
+  display: none;
+}
+
+.new-style-button {
+    text-decoration: none;
+    position: relative;
+    display: inline-block;
+    padding: 15px 30px;
+    line-height: normal;
+    border-radius: 5px;
+    background: #000;
+    color: #fff;
+  transition:0.3s ease-in-out;
+}
+.new-style-button:hover {
+	color: #fff;
+  background:#c89936;
+  transform:scale(1.03);
+}
+  @media (max-width: 768px) {
+  .hero-slider .video-banner .mobile, .hero-slider .banner-image .mobile{
+    display:block;
+  }
+  .hero-slider .video-banner .desktop, .hero-slider .banner-image .desktop{
+    display:none;
+  }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+{% endjavascript %}

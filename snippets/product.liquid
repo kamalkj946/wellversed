@@ -1,0 +1,1085 @@
+{% comment %}
+  @param product {Object}
+    The product object
+
+  @param layout {String}
+    The layout type
+
+  @param is_product_modal {Boolean}
+    Is the snippet being loaded in a Quick shop
+
+  @param is_featured_product {Boolean}
+    Is the snippet being loaded in a Featured product
+
+  @param onboarding {Boolean}
+    Is there onboarding content
+
+  @param show_dynamic_checkout_button {Boolean}
+    If true, show dynamic checkout button
+
+  @param select_first_available_variant {Boolean}
+    If true, select the first available variant
+
+  @param gallery_aspect_ratio {String}
+    This is the gallery aspect ratio, can be one of 'natural', 'short', 'square', 'long'
+
+  @param gallery_thumbnail_position {String}
+    This is the gallery thumbnail position, can be one of 'below', or 'left'
+
+  @param gallery_image_crop {Boolean}
+    Whether to crop images
+
+  @param gallery_hover_zoom {String}
+    This is the hover zoom setting, which is either 'disabled', 'separate', or 'replace'
+
+  @param gallery_click_to_zoom {String}
+    This is the click to zoom setting, which is either 'disabled', 'mobile', 'desktop', or 'always'
+{% endcomment %}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "{{ product.name }}",
+  "image": "{{ product.image }}",
+  "description": "{{ product.description }}",
+  "sku": "{{ product.sku }}",
+  "mpn": "{{ product.mpn }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "{{ product.brand }}"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ product.url }}",
+    "priceCurrency": "{{ product.priceCurrency }}",
+    "price": "{{ product.price }}",
+    "priceValidUntil": "{{ product.priceValidUntil }}",
+    "itemCondition": "https://schema.org/{{ product.itemCondition }}",
+    "availability": "https://schema.org/{{ product.availability }}",
+    "seller": {
+      "@type": "Organization",
+      "name": "{{ seller.name }}"
+    }
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ product.ratingValue }}",
+    "reviewCount": "{{ product.reviewCount }}"
+  },
+  "review": [
+    {
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": "{{ review.author }}"
+      },
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "{{ review.ratingValue }}"
+      },
+      "reviewBody": "{{ review.reviewBody }}"
+    }
+  ]
+}
+</script>
+
+
+{% assign onboarding = onboarding | default: false %}
+{% assign layout = layout | default: nil %}
+{% assign is_featured_product = is_featured_product | default: false %}
+
+{% if layout == 'layout--three-col' %}
+  {% assign product_form = true %}
+{% else %}
+  {% assign product_form = false %}
+  {% for block in section.blocks %}
+    {% case block.type %}
+      {% when 'form' %}
+        {% assign product_form = true %}
+    {% endcase %}
+  {% endfor %}
+{% endif %}
+
+{% liquid
+  assign selected_variant = product.selected_variant
+
+  if product.variants.size == 1 or select_first_available_variant or product_form == false
+    assign selected_variant = product.selected_or_first_available_variant
+  endif
+%}
+
+{% assign compare_at_price = selected_variant.compare_at_price %}
+{% assign price = selected_variant.price %}
+{% assign sku = selected_variant.sku %}
+{% assign product_available = product.available %}
+
+{% comment %}For a potential divider in the product.description we need to split the content{% endcomment %}
+{% assign readmore_split = product.description | split: '<!-- more -->' %}
+
+{% if onboarding %}
+  {% assign compare_at_price = 2999 %}
+  {% assign price = 1999 %}
+{% endif %}
+
+{% assign on_sale = false %}
+{% if compare_at_price > price %}
+  {% assign on_sale = true %}
+{% endif %}
+
+{% assign consistent_saved = false %}
+{% capture consistent_savings %}
+  {%
+    render 'consistent-savings',
+    variants: product.variants,
+    on_sale: on_sale
+  %}
+{% endcapture %}
+{% if consistent_savings contains 'true' %}
+  {% assign consistent_saved = true %}
+{% endif %}
+
+{%- capture share_buttons -%}
+  {% assign social_image = false %}
+  {% if product.featured_image %}
+    {% assign social_image = product.featured_image | img_url: '1024x' %}
+  {% endif %}
+  {% assign social_url = shop.url | append: product.url %}
+  {%-
+    render 'share-buttons',
+    snippet_title: 'general.share_buttons.title',
+    social_image: social_image,
+    social_title: product.title,
+    social_url: social_url
+  -%}
+{%- endcapture  -%}
+
+<article class="product--outer">
+  {%
+    render 'product-gallery',
+    product: product,
+    select_first_available_variant: select_first_available_variant,
+    aspect_ratio: gallery_aspect_ratio,
+    thumbnail_position: gallery_thumbnail_position,
+    image_crop: gallery_image_crop,
+    gallery_click_to_zoom: gallery_click_to_zoom,
+    gallery_hover_zoom: gallery_hover_zoom
+  %}
+
+  <div class="product-main">
+    <div class="product-details" data-product-details>
+      {% for block in section.blocks %}
+        <div
+          class="
+            product-block
+            product-block--{{ block.type }}
+            {% if forloop.first == true -%}
+              product-block--first
+            {% endif %}
+          "
+          {{ block.shopify_attributes }}
+        >
+       
+          {% case block.type %}
+            {% when 'complementary_products' %}
+              {%
+                render 'complementary-products',
+                product: product,
+                block: block,
+              %}
+            {% when 'title' %}
+              {% if is_product_modal %}
+                <h2 class="product-title">
+                  <a href="{{ product.url }}">{{ product.title }}</a>
+                </h2>
+              {% else %}
+                {% if template == 'index' %}
+                  <h2 class="product-title">
+                {% else %}
+                  <h1 class="product-title">
+                {% endif %}
+                  {% unless onboarding %}
+                    {{ product.title }}
+                  {% else %}
+                    {{ 'onboarding.product.title' | t }}
+                  {% endunless %}
+                {% if template == 'index' %}
+                  </h2>
+                {% else %}
+                  </h1>
+                  <h3 class="product-subhead">{{ product.metafields.custom.benefits }}</h3>
+                {% endif %}
+              {% endif %}
+            {% comment %}<img style="width: 10rem;" src="https://cdn.shopify.com/s/files/1/0233/6459/9885/files/top-review.jpg" />{% endcomment %}
+
+            {% when 'vendor' %}
+              {% if product.vendor != blank or onboarding %}
+                <div class="product-vendor product-ven-wish-design">
+                  <div class="product-vender">
+                    {% unless onboarding %}
+                      {%- capture vendor_link -%}
+                        {{ product.vendor | link_to_vendor }}
+                      {%- endcapture -%}
+                      {{ 'product.general.by_vendor_html' | t: vendor_link: vendor_link }}
+                    {% else %}
+                      {{ 'onboarding.product.by_vendor' | t }}
+                    {% endunless %}
+                  </div>
+                <div class="product-wishlist">
+               <div class="Wishlist-design">
+                <label for="Add_to_wishlist" class="Add_to_wishlist" labelid="{{ product.id }}">Add to wishlist</label>
+                {% if customer.id %}
+                <figure id="Add_to_wishlist" class="wishlist-nodeify" onclick="wishlist_nodify(this);" customer_id="{{ customer.id }}" customer_email="{{ customer.email }}" handel_item="{{ product.handle }}" item_id="{{ product.id }}">
+                  <svg svgid="{{ product.id }}" class="" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </figure>
+                {% else %}
+                <figure id="Add_to_wishlist" class="wishlist-nodeify" onclick="window.location.href='/account/login';">
+                  <svg svgid="{{ product.id }}" class="" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </figure>
+                {% endif %}
+              </div>
+
+
+
+                  {% if customer.id != '' %} 
+<!--                     <figer class="wishlist-nodeify main-nodeify" onclick="wishlist_nodify(this);"  customer_id="{{ customer.id }}" customer_email="{{ customer.email }}" handel_item="{{ product.handle }}" item_id="{{ product.id }}">
+                      <svg class="" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    </figer> -->
+                  {% endif %}
+                  <div class="product-share-design">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M17.5 14.25C16.9877 14.2518 16.4831 14.3751 16.0276 14.6098C15.5722 14.8445 15.1789 15.1838 14.88 15.6L9.59 13C9.6931 12.6765 9.74704 12.3394 9.75 12C9.74704 11.6605 9.6931 11.3234 9.59 11L14.88 8.39996C15.3362 9.01882 15.9982 9.45467 16.7469 9.62915C17.4957 9.80363 18.2821 9.7053 18.9649 9.35185C19.6477 8.99839 20.182 8.41299 20.4717 7.70086C20.7615 6.98874 20.7878 6.19661 20.5458 5.46685C20.3038 4.7371 19.8095 4.11758 19.1517 3.71967C18.4938 3.32177 17.7156 3.17156 16.9569 3.29605C16.1982 3.42055 15.5089 3.81158 15.0127 4.39886C14.5165 4.98614 14.2461 5.73115 14.25 6.49996C14.2524 6.66775 14.2691 6.83503 14.3 6.99996L8.83 9.74996C8.53061 9.43287 8.16938 9.18052 7.76862 9.00852C7.36787 8.83653 6.9361 8.74853 6.5 8.74996C5.63805 8.74996 4.8114 9.09237 4.2019 9.70187C3.59241 10.3114 3.25 11.138 3.25 12C3.25 12.8619 3.59241 13.6886 4.2019 14.2981C4.8114 14.9076 5.63805 15.25 6.5 15.25C6.9361 15.2514 7.36787 15.1634 7.76862 14.9914C8.16938 14.8194 8.53061 14.5671 8.83 14.25L14.3 17C14.2685 17.1682 14.2518 17.3388 14.25 17.51C14.25 18.1528 14.4406 18.7811 14.7977 19.3156C15.1548 19.85 15.6624 20.2666 16.2563 20.5126C16.8501 20.7586 17.5036 20.8229 18.134 20.6975C18.7645 20.5721 19.3436 20.2626 19.7981 19.8081C20.2526 19.3535 20.5621 18.7744 20.6876 18.144C20.813 17.5136 20.7486 16.8601 20.5026 16.2662C20.2566 15.6724 19.8401 15.1648 19.3056 14.8077C18.7711 14.4506 18.1428 14.26 17.5 14.26V14.25ZM17.5 4.74996C17.8461 4.74996 18.1845 4.8526 18.4722 5.04489C18.76 5.23718 18.9843 5.5105 19.1168 5.83027C19.2492 6.15004 19.2839 6.50191 19.2164 6.84137C19.1488 7.18084 18.9822 7.49266 18.7374 7.7374C18.4927 7.98214 18.1809 8.14881 17.8414 8.21634C17.5019 8.28386 17.1501 8.24921 16.8303 8.11675C16.5105 7.9843 16.2372 7.76 16.0449 7.47221C15.8526 7.18443 15.75 6.84608 15.75 6.49996C15.7526 6.03664 15.9378 5.59305 16.2655 5.26543C16.5931 4.93781 17.0367 4.75259 17.5 4.74996ZM6.5 13.75C6.15388 13.75 5.81554 13.6473 5.52775 13.455C5.23997 13.2627 5.01566 12.9894 4.88321 12.6697C4.75076 12.3499 4.7161 11.998 4.78363 11.6586C4.85115 11.3191 5.01782 11.0073 5.26256 10.7625C5.50731 10.5178 5.81912 10.3511 6.15859 10.2836C6.49806 10.2161 6.84993 10.2507 7.1697 10.3832C7.48947 10.5156 7.76278 10.7399 7.95507 11.0277C8.14736 11.3155 8.25 11.6538 8.25 12C8.24738 12.4633 8.06216 12.9069 7.73454 13.2345C7.40691 13.5621 6.96332 13.7473 6.5 13.75ZM17.5 19.25C17.1539 19.25 16.8155 19.1473 16.5278 18.955C16.24 18.7627 16.0157 18.4894 15.8832 18.1697C15.7508 17.8499 15.7161 17.498 15.7836 17.1586C15.8511 16.8191 16.0178 16.5073 16.2626 16.2625C16.5073 16.0178 16.8191 15.8511 17.1586 15.7836C17.4981 15.7161 17.8499 15.7507 18.1697 15.8832C18.4895 16.0156 18.7628 16.2399 18.9551 16.5277C19.1474 16.8155 19.25 17.1538 19.25 17.5C19.2474 17.9633 19.0622 18.4069 18.7345 18.7345C18.4069 19.0621 17.9633 19.2473 17.5 19.25Z" fill="#000000"/>
+                    </svg>
+                 <div class="product-share">
+                {{ share_buttons | strip_newlines }}
+              </div>
+                  </div>
+               
+                </div>
+                </div>
+              {% endif %}
+
+            {% when 'inventory_status' %}
+              {% for variant in product.variants %}
+                {% capture stock_attributes %}
+                  data-stock-level
+                  data-stock-variant-id="{{ variant.id }}"
+                  data-stock-variant-selected="{% if variant == selected_variant %}true{% else %}false{% endif %}"
+                {% endcapture %}
+
+                {%
+                  render 'product-stock-level',
+                  attr: stock_attributes,
+                  inventory_display: block.settings.inventory_display,
+                  inventory_transfer: block.settings.inventory_transfer_notice,
+                  variant: variant,
+                  verbose: true,
+                %}
+              {% endfor %}
+
+            {% when 'rating' %}
+              {% if product.metafields.reviews.rating.value != blank %}
+                <div test class="product__rating rating">
+                  {%
+                    render 'rating-stars',
+                    value: product.metafields.reviews.rating.value.rating,
+                    scale_max: product.metafields.reviews.rating.value.scale_max,
+                  %}
+
+                  <p class="rating__text">
+                    <span aria-hidden="true">
+                      {{ product.metafields.reviews.rating.value }} / {{ product.metafields.reviews.rating.value.scale_max }}
+                    </span>
+                  </p>
+
+                  <p class="rating__count">
+                    <span aria-hidden="true">
+                      {{ product.metafields.reviews.rating_count }}
+                      {% if product.metafields.reviews.rating_count > 1 %}
+                        {{ "general.accessibility.star_reviews_text" | t }}
+                      {% else %}
+                        {{ "general.accessibility.star_review_text" | t }}
+                      {% endif %}
+                    </span>
+                  </p>
+                </div>
+              {% endif %}
+
+            {% when 'key_details' %}
+              {% unless block.settings.title == blank and block.settings.text == blank %}
+                <div
+                  class="key-details"
+                  style="
+                    --key-details-text-color: {{ block.settings.text_color }};
+                    --key-details-icon-color: {{ block.settings.icon_color }};
+                    --key-details-background-color: {{ block.settings.background_color }};
+                  "
+                >
+                  {% if block.settings.image %}
+                    {%
+                      render 'rimg',
+                      img: block.settings.image,
+                      class: 'key-details__image',
+                      size: '50x50',
+                      lazy: true,
+                      focal_point: block.settings.image.presentation.focal_point,
+                    %}
+                  {% else %}
+                    {%
+                      render 'icon-library',
+                      id: block.settings.icon,
+                      icon_class: 'key-details__icon',
+                    %}
+                  {% endif %}
+
+                  <div class="key-details__wrapper">
+                    {% if block.settings.title != blank %}
+                      <p class="key-details__heading">
+                        {{ block.settings.title | escape }}
+                      </p>
+                    {% endif %}
+
+                    {% if block.settings.text != blank %}
+                      {{ block.settings.text }}
+                    {% endif %}
+                  </div>
+                </div>
+              {% endunless %}
+
+            {% when 'price' %}
+            <div
+                class="product-pricing"
+                aria-live="polite"
+                data-product-pricing
+              >
+                {%
+                  render 'product-badge',
+                  product: product,
+                  class_root: 'product',
+                  product_available: product_available,
+                  price: price,
+                  price_varies: true,
+                  compare_at_price: compare_at_price,
+                  compare_at_price_varies: false,
+                  on_sale: on_sale,
+                  show_saved: true,
+                  include_range: false,
+                  selected_variant: selected_variant,
+                %}
+
+                {%
+                  render 'product-price',
+                  product: product,
+                  class_root: 'product',
+                  price: price,
+                  price_varies: false,
+                  compare_at_price: compare_at_price,
+                  compare_at_price_varies: false,
+                  on_sale: on_sale,
+                  emphasize_price: false,
+                  show_original: true,
+                  show_range: false,
+                  include_unit_price: true,
+                  include_tax_line: true,
+                  include_hidden_price: true
+                %}
+           <span class="prod-txt">Inclusive of all taxes</span>
+                <form data-payment-terms-target style="display: none;"></form>
+            
+              </div>
+   
+           
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+            
+function extractNumbersFromString(str) {
+  const regex = /(\d+(\.\d+)?)/g;
+  const numbers = str.match(regex) || [];
+  return numbers.join('');
+}
+
+  //////////////// sticky selection click js
+
+  // Wait for the document to be ready
+  
+// $(document).ready(function() {
+//     // Select the 'variant-selector' select element by its ID
+  
+//     const weightSelection = document.getElementById('variant-selector');
+
+//     // Select the radio buttons within the <fieldset> element
+//     const radioButtons = document.querySelectorAll('.options-selection__option-value-input');
+
+//     // Add an event listener to the 'change' event of the 'variant-selector' select element
+//     weightSelection.addEventListener('change', function(event) {
+      
+//       console.log('onchange-sticky-option running...');
+      
+//         // Get the text of the selected option using jQuery (note: jQuery is used here)
+//         var selectedValue = $("#variant-selector option:selected").text();
+
+//         // Get the data-compare-price attribute from the selected option
+//   var comparePrice = $("#variant-selector option:selected").data('compare-price');
+  
+//   console.log('selected Value is ' + selectedValue);
+//   console.log('Compare Price is ' + comparePrice);
+      
+      
+
+//       //now appending required div and changes
+      
+//         setTimeout(function(){
+//             // Wait for the document to be ready
+// $(document).ready(function() {
+//     // Select the div element by its class name
+//     var priceElement = $('.price.product__price');
+  
+//     // var comparePrice = "{{ product.compare_at_price | money_without_trailing_zeros }}";
+ 
+
+//   if (priceElement.length > 0) {
+//     $('.mrp_price').remove();
+//     // Create a div element with the text "MRP:"
+//   var mrpDiv = $('<div>').text('MRP: ').addClass('mrp_price');
+
+//     // Create a span element with the text "₹ 30920" and add classes and attributes
+//   var comparePrice = $("#variant-selector option:selected").data('compare-price');
+//     console.log('Compare Price is 2 santosh' + comparePrice);
+    
+//     var mrpSpan = $('<span>').text('₹ ' + comparePrice)
+//       .addClass('money price__compare-at--single')
+//       .attr('data-price-compare', '')
+//       .attr('data', '')
+//       .css({
+//         'font-size': '15px',
+//         'text-decoration': 'line-through',
+//         'color': '#949494'
+//       });
+
+//     // Append the span element to the MRP div
+//     mrpDiv.append(mrpSpan);
+
+//     // Insert the div element before the priceElement
+//     priceElement.before(mrpDiv);
+
+ 
+    
+//   }
+
+//     // Check if the element was found
+//     if (priceElement.length > 0) {
+//         // Get the current text content of the div
+//         var currentText = priceElement.text();
+
+//         // Replace the text with "Price: ₹"
+//         var updatedText = currentText.replace('Rs.', 'Price: ₹');
+// //calculate discount % here
+//    // var comparePrice = "{{ product.compare_at_price | money_without_trailing_zeros }}";
+//       var comparePrice = $("#variant-selector option:selected").data('compare-price');
+            
+//     // var regularPrice = "{{ product.price | money_without_trailing_zeros }}";
+//       var regularPrice = $("#variant-selector option:selected").data('sale-price');
+      
+//         console.log('selected Value is calculate discount stiky ' + regularPrice);
+//   console.log('Compare Price is calculate discount stiky  ' + comparePrice);
+            
+//     comparePrice = extractNumbersFromString(comparePrice);
+//     regularPrice = extractNumbersFromString(regularPrice);
+//    comparePrice = parseFloat(comparePrice);
+//     regularPrice = parseFloat(regularPrice);
+//     var discountPercentage = ((comparePrice - regularPrice) / comparePrice) * 100;
+//     discountPercentage = Math.round(discountPercentage);
+
+//       //// end discount % calculation
+      
+
+//         // Create a <span> element for the discount
+//         var discountSpan = $('<span>').attr('id', 'DiscountPercentage').text(discountPercentage + "% off");
+
+//         // Apply CSS styles to the discount span
+//         discountSpan.css({
+//             'font-size': '14px',
+//             'font-weight': '600',
+//             'line-height': '24px',
+//             'letter-spacing': 'normal',
+//             'color': '#00a856',
+//             'margin-left': '10px',
+//             'margin-bottom': '10px' // Fix the syntax error here
+//         });
+
+//         // Append the discount span to the updated text
+//         var updatedContent = updatedText + ' ' + discountSpan.prop('outerHTML');
+
+//         // Update the HTML content of the div
+//         priceElement.html(updatedContent);
+
+//         // Apply CSS styles to the entire div
+//         priceElement.css({
+//             'color': '#000',
+//             'font-weight': '600',
+//             'font-size': '20px'
+//         });
+//     }
+// });
+//        // Select the <span> element with the class 'prod-txt'
+//   var prodTxtSpan = $('.prod-txt');
+
+//   // Create a new <div> element
+//   var newDiv = $('<div>', {
+//     'class': 'prod-txt',  // Set the class for the new <div> element
+//     'text': prodTxtSpan.text()  // Copy the text content from the <span> element
+//   });
+
+//   // Replace the <span> element with the new <div> element
+//   prodTxtSpan.replaceWith(newDiv);
+
+//           ////////append MRP
+
+          
+//         },1500);
+      
+
+
+//         // Loop through the radio buttons and perform actions based on their values
+//         radioButtons.forEach(function(radioButton) {
+//             // Check if the radio button's value matches the selected option's text
+//             if (radioButton.value == selectedValue) {
+//                 // Log information about the match
+//                 console.log('Radio button value is ' + radioButton.value + ' Selected Value is ' + selectedValue);
+                
+//                 // Trigger a click event on the radio button
+//                 radioButton.click();
+                
+//                 // Optionally, prevent further propagation of the change event (commented out)
+//                 // event.stopPropagation();
+//             }
+//         });
+//     });
+// });
+
+$(document).ready(function() {
+  var vendorLink = $('.product-vender a');
+  var currentHref = vendorLink.attr('href');
+  console.log('Current Href:', currentHref);
+  var newHref = currentHref.replace('vendors?q=', '');
+  vendorLink.attr('href', newHref);
+  console.log('Updated Href:', newHref);
+});
+
+  
+</script>
+
+            {% when 'sku' %}
+              {% unless onboarding %}
+                <div
+                  class="
+                    product-sku
+                    {% if sku == empty %}product-sku--empty{% endif %}
+                  "
+                >
+                  {{ 'product.general.sku_html' | t: sku: sku | strip_newlines }}
+                </div>
+              {% endunless %}
+
+            {% when 'description' %}
+              {% if readmore_split[0] != blank %}
+                <div class="product-description rte rr" data-product-description>
+                  {{ readmore_split[0] }}
+                </div>
+              {% endif %}
+            
+            {% when 'extrasell' %}
+            <div class="extra-sell">
+              <h2>Products inside</h2>
+              <div class="extra-sell-design">
+                <div class="item">
+                  <div class="img">
+                    <img src="https://cdn.shopify.com/s/files/1/0233/6459/9885/files/extra1.webp" />
+                  </div>
+                  <div class="content">
+                    <a href="">Wellcore - Micronised Creatine Monohydrate (100g, 33 Servings) | 100% Pure Creatine | Unflavored | Supports Athletic Performance and Power</a>
+                  </div>
+                </div>
+                <div class="plus-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 6V18" stroke="#1C1C28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M6 12H18" stroke="#1C1C28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                </div>
+                <div class="item">
+                  <div class="img">
+                    <img src="https://cdn.shopify.com/s/files/1/0233/6459/9885/files/extra1.webp" />
+                  </div>
+                  <div class="content">
+                    <a href="">Wellcore - Micronised Creatine Monohydrate (100g, 33 Servings) | 100% Pure Creatine | Unflavored | Supports Athletic Performance and Power</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {% when 'form' %}
+              <div
+                class="product-form--regular"
+                data-product-form-regular
+              >
+                <div data-product-form-area>
+                  {% if is_product_modal %}
+                    <div data-product-quickshop-message class="product-message--container"></div>
+                  {% endif %}
+
+                  {% liquid
+                    if product.template_suffix contains 'pre-order'
+                      assign show_dynamic_checkout_button = false
+                    endif
+
+                    if product.template_suffix contains 'pre-order' and is_product_modal
+                      assign enable_local_pickup = false
+                    else
+                      assign enable_local_pickup = block.settings.enable_local_pickup
+                    endif
+                  %}
+
+                  {% unless onboarding %}
+                    {%
+                      render 'product-form',
+                      product: product,
+                      enable_local_pickup: enable_local_pickup,
+                      show_dynamic_checkout_button: show_dynamic_checkout_button,
+                      selected_variant: selected_variant,
+                      is_product_modal: is_product_modal,
+                    %}
+                  {% endunless %}
+                </div>
+              </div>
+
+            
+            {% when 'text' %}
+              <div class="product-text">
+                {{ block.settings.text }}
+              </div>
+
+            {% when 'share' %}
+              <div class="product-share">
+                {{ share_buttons | strip_newlines }}
+              </div>
+
+            {% when 'custom-liquid' %}
+              {% if block.settings.custom_liquid != blank %}
+                <div class="custom-liquid">
+                  {{ block.settings.custom_liquid }}
+                  
+<!--                   <div id="product-validator">Makkpress-Product Validator: Please Select a plan!</div>
+                <script src="https://makkpressapps.com/productvalidator/productvalidator-theme-script.js?v=1.0304" data-store="{{ shop.permanent_domain }}" data-product="{{ product.id }}" data-customername="{{ customer.name }}" data-customerphone="{{ customer.phone }}" data-customeremail="{{ customer.email }}"></script>
+                 -->
+                </div>
+              
+              {% endif %}
+
+              
+            {% when 'tabs' %}
+              {% if block.settings.show_tabs_below_product_gallery %}
+                {% assign tabs_below_product_gallery = true %}
+              {% else %}
+                {% assign tabs_below_product_gallery = false %}
+              {% endif %}
+
+              {% capture product_tabs %}
+                {% assign tab_counter = 1 %}
+
+                <div class="pxu-tabs pxu-tabs--bottom-{{ tabs_below_product_gallery }}">
+                  {% if block.settings.show_product_description %}
+                    <input
+                      class="tab-radio"
+                      id="description-tab-{{ section.id }}"
+                      name="{{ section.id }}"
+                      tabindex="0"
+                      type="radio"
+                      checked="checked"
+                    >
+
+                    <label class="tab-label" for="description-tab-{{ section.id }}">
+                      {{ 'product.onboarding.tab_title'| t }}
+                    </label>
+
+                    <div class="tab-panel" tabindex="0">
+                      {% if onboarding %}
+                        {{ 'product.onboarding.tab_content'| t }}
+                      {% else %}
+                        {% if product.description != blank %}
+                          {{ product.description }}
+                        {% else %}
+                          {{ 'product.onboarding.tab_content'| t }}
+                        {% endif %}
+                      {% endif %}
+                    </div>
+                  {% endif %}
+
+                  {% for i in (1..3) %}
+                    {% assign tab_text_key = 'tab_text_' | append: i %}
+                    {% assign tab_heading_key = 'tab_heading_' | append: i %}
+                    {% assign tab_heading_value = block.settings[tab_heading_key] %}
+                    {% assign tab_text_value = block.settings[tab_text_key] %}
+
+                    {% if tab_heading_value != blank %}
+                      <input
+                        class="tab-radio"
+                        id="tab-{{ i }}-{{ section.id }}"
+                        name="{{ section.id }}"
+                        tabindex="0"
+                        type="radio"
+                        {% if tab_counter == 1 and block.settings.show_product_description == false %}
+                          checked
+                        {% endif %}
+                      >
+
+                      <label class="tab-label" for="tab-{{ i }}-{{ section.id }}">
+                        {{ tab_heading_value | escape }}
+                      </label>
+
+                      <div class="tab-panel" tabindex="0">
+                        {{ tab_text_value }}
+                      </div>
+
+                      {% assign tab_counter = tab_counter | plus: 1 %}
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              {% endcapture %}
+
+              {% if block.settings.show_tabs_below_product_gallery != true %}
+                {{ product_tabs }}
+              {% endif %}
+
+            {% when 'collapsible-tab' %}
+              {% if block.settings.collapsible_tab_heading != blank %}
+                <details class="collapsible-tab">
+                  <summary class="collapsible-tab__heading">
+                    <span>{{ block.settings.collapsible_tab_heading | escape }}</span>
+                    {% render 'icon-chevron-down-small' %}
+                  </summary>
+
+                  {% if block.settings.collapsible_tab_text != blank %}
+                    <div class="collapsible-tab__text">
+                      {{ block.settings.collapsible_tab_text }}
+                    </div>
+                  {% endif %}
+                </details>
+              {% endif %}
+
+            {% when '@app' %}
+              <div class="product-app">
+                {% render block %}
+              </div>
+
+            {% when 'view-product-link' %}
+              <a
+                class="product-link"
+                href="{{ product.url }}"
+                data-product-details-link
+              >
+                {{ block.settings.text | escape }}
+              </a>
+
+            {% when 'request_quote' %}
+              {%
+                render 'product-request-form',
+                product: product,
+                heading: block.settings.title,
+                show_quantity: block.settings.show_quantity,
+                show_message: block.settings.show_message,
+                selected_variant: selected_variant,
+                sku: sku,
+              %}
+          {% endcase %}
+        </div>
+      {% endfor %}
+
+      {% if layout == 'layout--three-col' %}
+        <div class="product-form--regular" data-product-form-regular>
+          <div data-product-form-area>
+            {% if is_product_modal %}
+              <div data-product-quickshop-message class="product-message--container"></div>
+            {% endif %}
+
+            {% liquid
+              if product.template_suffix contains 'pre-order'
+                assign show_dynamic_checkout_button = false
+              endif
+
+              if product.template_suffix contains 'pre-order' and is_product_modal
+                assign enable_local_pickup = false
+              else
+                assign enable_local_pickup = section.settings.enable_local_pickup
+              endif
+            %}
+
+            {% unless onboarding %}
+              {%
+                render 'product-form',
+                product: product,
+                enable_local_pickup: enable_local_pickup,
+                show_dynamic_checkout_button: show_dynamic_checkout_button,
+                selected_variant: selected_variant,
+                is_product_modal: is_product_modal,
+              %}
+            {% endunless %}
+
+            {% if section.settings.social_share and is_product_modal == false %}
+              {{ share_buttons | strip_newlines }}
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    
+  </div>
+
+  {% if layout == 'layout--three-col' %}
+    <div class="product-form--alt" data-product-form-alt></div>
+  {% endif %}
+</article>
+
+{% if tabs_below_product_gallery == true %}
+  {{ product_tabs }}
+{% endif %}
+
+{% if readmore_split[1] != blank and is_featured_product != true and is_product_modal != true %}
+  <div class="product-readmore rte" data-product-readmore>
+    {{ readmore_split[1] }}
+  </div>
+{% endif %}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$.ajax({
+  type: 'POST',
+  url: 'https://makkpressapps.com/do_not_delete/fwdwishlist/get.php',
+  data: { customer_id: $('#Add_to_wishlist').attr('customer_id') },
+  success: function(response) {
+    const productData = response;
+    var currentProductId = '{{ product.id }}'; 
+
+    productData.map(items => {
+      // console.log('Papa Mai duniya ka Papa');
+      let eventbtn = document.querySelectorAll(`[item_id="${items.item_id}"]`);
+      let labelid = document.querySelectorAll(`[labelid="${items.item_id}"]`);
+      let svg = document.querySelectorAll(`[svgid="${items.item_id}"]`);
+
+      for (var i = 0; i < svg.length; i++) {
+        svg[i].style.fill = items.item_id === currentProductId ? 'red' : '';
+
+        eventbtn[i].setAttribute('onclick', 'wislist_nodify_R(this)');
+        eventbtn[i].setAttribute('id', 'Added_to_wishlist');
+        labelid[i].setAttribute('for', 'Added_to_wishlist');
+        labelid[i].classList.add('Added_to_wishlist');
+
+        if (items.item_id === currentProductId) {
+          labelid[i].innerHTML =
+            "<img src='https://static1.hkrtcdn.com/hknext/static/media/common/variant/wishlist/ok.svg'><span>Added to wishlist <a href='https://shop-wellversed.myshopify.com/pages/wishlist'>View All</a></span>";
+        } else {
+          labelid[i].innerHTML = 'Add to Wishlist';
+        }
+      }
+    });
+  }
+});
+</script>   
+
+<script>
+
+// function onloadpage(){
+//   var priceText = $('.price__compare-at--single').text();
+
+
+// var priceValue = parseInt(priceText.match(/\d+/)[0]);
+     
+//  // console.log('clicked - santosh');
+
+
+
+//       var priceText2 = $('.price__current--on-sale .money').text();
+
+// var priceValue2 = parseInt(priceText2.match(/\d+/)[0]);
+
+// // Log the integer price to the console     
+//     var comparePrice = priceValue;
+//             console.log(comparePrice);
+//     var regularPrice = priceValue2;
+//             console.log(regularPrice);
+   
+//     var discountPercentage = ((comparePrice - regularPrice) / comparePrice) * 100;
+     
+//     discountPercentage = Math.round(discountPercentage);
+
+// setTimeout(function(){
+//     var discountDiv = $("#DiscountPercentage");
+//     discountDiv.text(discountPercentage + "% off");
+// console.log("Discount Percentage:", discountPercentage.toFixed(2) + "% santosh");
+// }, 1500);
+// }
+
+// setTimeout(function(){
+// onloadpage();
+// console.log('discount loaded');
+// }, 2000);
+ 
+
+ var product_pricee;
+var regular_pricee;
+var discount_percentage;
+
+function onloadpage() {
+  product_pricee = "{{ product.compare_at_price }}";
+  regular_pricee = "{{ product.price }}";
+  product_pricee = parseInt(product_pricee);
+  regular_pricee = parseInt(regular_pricee);
+  discount_percentage = ((product_pricee - regular_pricee) / product_pricee) * 100;
+  discount_percentage = Math.round(discount_percentage); // Assign the rounded value
+  console.log('discount percentage is ', discount_percentage);
+
+  var discountDiv = $("#DiscountPercentage");
+  discountDiv.html(discount_percentage + "% off");
+}
+
+// onloadpage();
+
+setTimeout(function(){
+onloadpage();
+}, 2000)
+
+
+
+
+  ///////script by santosh , to add discount on quick view click 
+
+      $('.options-selection__option-value').on('click', function(){
+
+     setTimeout(function(){
+    var discountDiv = $("#DiscountPercentage");
+    discountDiv.text(discountPercentage + "% off");
+console.log("Discount Percentage new:", discountPercentage.toFixed(2) + "% santosh");
+}, 1500);
+
+   $(document).ready(function() {
+
+     var priceText = $('.price__compare-at--single').text();
+
+
+var priceValue = parseInt(priceText.match(/\d+/)[0]);
+     
+ // console.log('clicked - santosh');
+
+
+
+      var priceText2 = $('.price__current--on-sale .money').text();
+
+var priceValue2 = parseInt(priceText2.match(/\d+/)[0]);
+
+// Log the integer price to the console     
+    var comparePrice = priceValue;
+            console.log(comparePrice);
+    var regularPrice = priceValue2;
+            console.log(regularPrice);
+   
+    var discountPercentage = ((comparePrice - regularPrice) / comparePrice) * 100;
+     
+    discountPercentage = Math.round(discountPercentage);
+
+setTimeout(function(){
+    var discountDiv = $("#DiscountPercentage");
+    discountDiv.text(discountPercentage + "% off");
+console.log("Discount Percentage:", discountPercentage.toFixed(2) + "% santosh");
+}, 1200);
+   
+    
+});
+
+});
+
+
+$(document).ready(function() {
+
+  // Function to update the secondary input value based on the primary input
+  function updateSecondaryInputValue(primaryInput, secondaryInput) {
+    secondaryInput.val(primaryInput.val());
+  }
+
+  // Check if the URL contains 'cart' and exit if true
+  // if (window.location.href.includes('cart')) {
+  //   return;
+  // }
+
+  // Declare variables using const
+  const primaryInput1 = $(".quantity-box .quantity-input");
+  const secondaryInput1 = $(".quantity-selector__input");
+  const plusButton1 = $(".quantity-plus");
+  const minusButton1 = $(".quantity-minus");
+
+  // Event listener for change and input events on primaryInput1 (product quantity)
+  primaryInput1.on("change input", function() {
+    updateSecondaryInputValue(primaryInput1, secondaryInput1);
+  });
+
+  // Event listener for change event on quantity-selector__input
+  secondaryInput1.on("change", function() {
+    updateSecondaryInputValue(secondaryInput1, primaryInput1);
+  });
+
+  // Event listener for plus button click
+  plusButton1.click(function() {
+    primaryInput1.val(parseInt(primaryInput1.val()) + 1);
+    updateSecondaryInputValue(primaryInput1, secondaryInput1);
+  });
+
+  // Event listener for minus button click
+  minusButton1.click(function() {
+    const currentValue = parseInt(primaryInput1.val());
+    if (currentValue > 1) {
+      primaryInput1.val(currentValue - 1);
+      updateSecondaryInputValue(primaryInput1, secondaryInput1);
+    }
+  });
+
+  // Initialize the secondary input value
+  updateSecondaryInputValue(primaryInput1, secondaryInput1);
+});
+
+
+// Abhishek code to change variant same as top , please don't touch this code 
+// $('.options-selection__option-values').attr('data-variant-option-chosen-value');
+// $('.options-selection__option-values').on('change', function() {
+// stickyBarUpdate();
+//     var selVariant = $(this).attr('data-variant-option-chosen-value');
+//     console.log('Selected Variant is ' + selVariant);
+    
+//     // Log the values of the options in the 'variant-selector' select element
+//     $('#variant-selector').find('option').each(function() {
+//         // console.log('Option Value: ' + $(this).val());
+//         // console.log('Option Value: ' + $(this).text());
+        
+//     });
+//     var $variantSelector = $('#variant-selector');
+    
+//     // Loop through each option in the select element
+//     $variantSelector.find('option').each(function() {
+//         // Compare the value of the option with selVariant
+//         if ($(this).text() === selVariant) {
+//             // If it matches, select the option
+//           $(this).prop('selected', true);
+          
+//         } else {
+//             // Deselect other options if needed
+//             $(this).prop('selected', false);
+//         }
+//     });
+// });
+
+////////////////////////////////
+</script>
+
+
+

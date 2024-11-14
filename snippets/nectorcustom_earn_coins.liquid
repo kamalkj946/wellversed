@@ -1,0 +1,45 @@
+{% assign nector_api_key = shop.metafields.nector.api_key %}
+{% assign nector_entity_id = shop.metafields.nector.entity_id %}
+{% assign nector_env = shop.metafields.nector.env %}
+{% assign nector_platform_url = 'https://platform.nector.io' %}
+{% assign nector_script_url = 'https://cdn.nector.io/nector-static/no-cache/reward-widget/mainloader.min.js' %}
+{% assign page_type = block.settings.type | default: 'product' %}
+
+{% if nector_env != 'production' %}
+  {% assign nector_platform_url = 'https://stageplatform.nector.io' %}
+  {% assign nector_script_url = 'https://cdn.nector.io/nector-static/no-cache/stagereward-widget/mainloader.min.js' %}
+{% endif %}
+
+{% assign nector_current_product_price = cart.original_total_price | default: 0 | divided_by: 100 %}
+
+{% if redirect_url %}
+  {% assign nector_redirect_url = redirect_url %}
+{% endif %}
+
+{% if shorter_text %}
+  {% assign nector_shorter_text = shorter_text %}
+{% endif %}
+
+<script
+  async
+  src="{{nector_script_url}}"
+  data-op="customerearn"
+  data-platform_url="{{nector_platform_url}}"
+  data-api_key="{{nector_api_key}}"
+  data-platform="shopify"
+  data-customer_id="{{ customer.id }}"
+
+  {% if nector_redirect_url %}
+    data-redirect_url="{{ nector_redirect_url }}"
+  {% endif %}
+
+  {% if nector_shorter_text %}
+    data-shorter_text="{{ nector_shorter_text }}"
+  {% endif %}
+
+  data-price="{{ nector_current_product_price }}"
+></script>
+
+<script id="nector-product-variants-data" type="application/json">
+  {{ product.variants | json }}
+</script>

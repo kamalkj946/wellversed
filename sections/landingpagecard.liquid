@@ -1,0 +1,65 @@
+{% schema %}
+{
+  "name": "Feature Products",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Select Collection"
+    },
+    {
+      "type": "number",
+      "id": "product_limit",
+      "label": "Number of Products",
+      "default": 4
+    }
+  ],
+  "presets": [
+    {
+      "name": "Feature Products",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}
+
+<section class="featured-products-section">
+  <div class="container">
+    <h2 class="section-heading">Featured Products</h2>
+    <div class="product-grid">
+      {% assign products = collections[section.settings.collection].products | sort: 'created_at' | reverse %}
+      {% for product in products limit: section.settings.product_limit %}
+        <div class="product-card">
+          <img src="{{ product.featured_image | img_url: 'medium' }}" alt="{{ product.title }}">
+          <h3 class="landingPageprohead">{{ product.title }}</h3>
+          
+          <!-- Product description -->
+          <p>{{ product.description | strip_html | truncate: 100 }}</p>
+          
+         <!-- Product prices with custom sale price metafield -->
+{% assign sale_price = product.metafields.custom.sale_price_amazon %}
+
+{% if sale_price %}
+  <p class="sale-price">Sale: {{ sale_price | times: 100 | money }}</p>
+  <p class="regular-price">Regular: <s>{{ product.price | money }}</s></p>
+{% else %}
+  <p class="regular-price">{{ product.price | money }}</p>
+{% endif %}
+
+          
+          <!-- Using the custom metafield for button link -->
+          {% assign button_link = product.metafields.custom.buttonlink %}
+          {% if button_link %}
+            <a href="{{ button_link }}"  target="_blank">
+         <img src="https://cdn.shopify.com/s/files/1/0233/6459/9885/files/WH___Buy_now___Amazon_Button.svg?v=1729055573" alt="Amazon Logo" class="amazon-logo">
+
+ 
+</a>
+          {% else %}
+            <a href="#" class="buy-now-btn disabled">No Link Available</a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>

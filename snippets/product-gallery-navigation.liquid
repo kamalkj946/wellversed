@@ -1,0 +1,179 @@
+{% comment %}
+  @param product {Product}
+    The product object in question
+
+  @param selected_media {Media}
+    The current selected media in the gallery
+
+  @param aspect_ratio {string}
+    The aspect ratio setting, which is either 'short', 'tall', or 'square'
+
+  @param image_crop {boolean}
+    Defines if the image should be cropped or not
+{% endcomment %}
+
+{% if product.media.size > 0 %}
+  {% assign thumb_dimensions = 'x75' %}
+  {% if image_crop %}
+    {% case aspect_ratio %}
+    {% when 'short' %}
+      {% assign thumb_dimensions = '100x75' %}
+    {% when 'tall' %}
+      {% assign thumb_dimensions = '50x75' %}
+    {% when 'square' %}
+      {% assign thumb_dimensions = '75x75' %}
+    {% endcase %}
+  {% endif %}
+
+  <div
+    class="product-gallery--navigation loading"
+    data-gallery-navigation testing
+  >
+    <button
+      class="gallery-navigation--scroll-button scroll-left"
+      aria-label="Scroll thumbnails left"
+      data-gallery-scroll-button
+    >
+      {% render 'icon-chevron-down' %}
+    </button>
+    <button
+      class="gallery-navigation--scroll-button scroll-right"
+      aria-label="Scroll thumbnails right"
+      data-gallery-scroll-button
+    >
+      {% render 'icon-chevron-down' %}
+    </button>
+
+    <div
+      class="gallery-navigation--scroller" data-gallery-scroller
+    >
+      {% for media in product.media %}
+        <button
+          class="
+            product-gallery--media-thumbnail
+            product-gallery--{{ media.media_type }}-thumbnail
+          "
+          type="button"
+          tab-index="0"
+          aria-label="{{ media.alt }} {{ 'general.accessibility.nav_product_thumbnail' | t }}"
+          data-gallery-thumbnail
+          data-gallery-index="{{ forloop.index0 }}"
+          data-gallery-selected="{%- if selected_media.id == media.id -%}true{%- else -%}false{%- endif -%}"
+          data-media="{{ media.id }}"
+          data-media-type="{{ media.media_type }}"
+        >
+          <span class="product-gallery--media-thumbnail-img-wrapper" tabindex="1">
+            {% if media.media_type == 'video' or media.media_type == 'external_video' %}
+              {% render 'icon-library', id: 'icon-play-thumb' %}
+            {% elsif media.media_type == 'model' %}
+              {% render 'icon-library', id: 'icon-model-thumb' %}
+            {% endif %}
+            {%
+              render 'rimg',
+              class: 'product-gallery--media-thumbnail-img',
+              img: media.preview_image,
+              size: thumb_dimensions,
+              crop: 'center',
+            %}
+          </span>
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="dot-navigation">
+    {% for media in product.media %}
+      <span
+        class="dot{% if forloop.index0 == 0 %} active{% endif %}"
+        data-dot-index="{{ forloop.index0 }}"
+      ></span>
+    {% endfor %}
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const thumbnails = document.querySelectorAll('[data-gallery-thumbnail]');
+      const dots = document.querySelectorAll('.dot');
+      const mainImage = document.querySelector('.product-gallery--loaded-image');
+      let currentIndex = 0;
+  
+
+      function updateMainImage(index) {
+        thumbnails[currentIndex].dataset.gallerySelected = 'false';
+        thumbnails[index].dataset.gallerySelected = 'true';
+
+        thumbnails[index].click();
+
+        mainImage.src = thumbnails[index].querySelector('img').getAttribute('src');
+        currentIndex = index;
+
+        // Add 'active' class to the corresponding dot
+        dots.forEach(dot => {
+          dot.classList.remove('active');
+        });
+        dots[index].classList.add('active');
+      }
+
+      function navigateNext() {
+        const nextIndex = (currentIndex + 1) % thumbnails.length;
+        updateMainImage(nextIndex);
+      }
+
+      function navigatePrev() {
+        const prevIndex = (currentIndex - 1 + thumbnails.length) % thumbnails.length;
+        updateMainImage(prevIndex);
+      }
+
+      function handleDotClick(event) {
+        const dotIndex = parseInt(event.target.dataset.dotIndex);
+        updateMainImage(dotIndex);
+      }
+
+      document.querySelector('.scroll-left').addEventListener('click', navigatePrev);
+      document.querySelector('.scroll-right').addEventListener('click', navigateNext);
+
+      // Add event listeners to dots
+      dots.forEach(dot => {
+        dot.addEventListener('click', handleDotClick);
+      });
+    });
+  </script>
+  <style>
+    .gallery-navigation--scroller::-webkit-scrollbar-thumb {
+      background: transparent;
+    }
+
+    .gallery-navigation--scroller {
+      max-width: calc(100% - 4rem);
+      margin: 0 auto;
+    }
+
+    .dot-navigation {
+      display: none;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #888;
+      margin: 0 5px;
+      cursor: pointer;
+    }
+
+    .dot.active {
+      background-color: #000;
+    }
+
+    @media (max-width:768px){
+      .product-gallery--navigation{
+        display: none;
+      }
+      .dot-navigation{
+        display: flex;
+      }
+    }
+  </style>
+{% endif %}

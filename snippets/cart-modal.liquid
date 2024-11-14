@@ -1,0 +1,30 @@
+<style>
+/*   [opencartmodal="close"] {
+    display: none;
+}
+    [opencartmodal="open"] {
+    display: block;
+} */
+
+</style>
+
+
+
+<div class="cookie-overlay p-4 d-none" opencartmodal="close">
+  <div class="bdySctn">
+    <div class="body">
+      <div class="msg">   
+        <img src="{{ 'load.png' | asset_url | img_tag: 'Logo' }}">
+<!--         fetching data custom-code.js -->
+        </div>
+      </div>
+      <div class="proceedtocart">
+       {% comment %}  <div id="simpl-checkout-ajaxCart-v2" class="simpl-button-container"></div>
+      <a href="/checkout" class="btn btn-blue fnt-caps btn-mini mini-cart-pop Proceed_to_cart_header" >
+          Checkout with Gift Cards</a> {% endcomment %}
+           <!-- <a href="/cart" class="btn btn-blue fnt-caps btn-mini mini-cart-pop Proceed_to_cart_header" >
+          Proceed to Cart</a> -->
+        {% render 'gokwik-checkout' %}
+      </div> 
+      </div>
+    </div>

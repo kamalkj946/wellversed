@@ -1,0 +1,96 @@
+<ul class="site-header-actions" data-header-actions>
+  <li class="profile-dropdown wishlist-header site-header-actions__account-link">
+    <div class="wishlist_nodify_icon">
+      {% if customer.id != null %}
+        <div style="float: right;" id="wishlist_counter"></div>
+      <a href="{{ shop.url }}/pages/wishlist" class="wishlist_nodify_icon_url">
+        
+        <svg class="" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+      </a>
+    {% else %}
+      <a href="{{ shop.url }}/account/login" class="wishlist_nodify_icon_url">
+        <svg class="" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+      </a>      
+    {% endif %}
+  
+
+      
+    </div>
+  </li>
+  <li class="profile-dropdown site-header-actions__account-link">
+      <div class="profile-dropbtn site-header_account-link-anchor">
+        <span class="site-header__account-icon">
+            {% 
+                render 'icon-library', 
+                id: 'icon-account', 
+            %}
+          </span>
+          <span class="site-header_account-link-text">{% if customer %}{{ customer.name }}{% else %}Profile{% endif %}</span>
+      </div>
+      <div class="dropdown-content">
+        <div class="content">
+          <h5 class="heading">Welcome</h5>
+          <p class="text">To access account and manage orders</p>
+
+          {% if customer %}
+            <a href="/account/logout" class="logout-button">Logout</a>
+          {% else %}
+            <a href="/account/login" class="login-button">Login / Signup</a>
+          {% endif %}
+          
+<!--           <a href="/account/login" class="login-button">Login / Signup</a> -->
+          
+        </div>
+        <a href="/account">My Account</a>
+        <a href="/account?a=orders">Last purchase / Order</a>
+        <a href="/pages/wishlist">Wishlist</a>
+        <a href="/pages/offer">Offers</a>
+        <a href="/pages/contact">Contact us</a>
+      </div>
+    </li>
+  {% comment %}
+  {% if shop.customer_accounts_enabled %}
+    {% unless customer %}
+      <li class="site-header-actions__account-link">
+        <a
+          class="site-header_account-link-anchor"
+          href="{{ routes.account_login_url }}"
+        >
+          <span class="site-header__account-icon">
+            {% 
+                render 'icon-library', 
+                id: 'icon-account', 
+            %}
+          </span>
+          
+          <span class="site-header_account-link-text">
+            {{ 'header.account.login' | t }}
+          </span>
+        </a>
+      </li>
+    {% else %}
+      <li class="site-header-actions__account-link">
+        <span class="site-header__account-icon">
+          {% render 'icon-library', id: 'icon-account' %}
+        </span>
+        <span class="site-header__account-links">
+          <a
+            class="site-header__account-link--account"
+            href="{{ routes.account_url }}"
+          >
+            {{ 'header.account.title' | t }}
+          </a>
+          
+          <a
+            class="site-header__account-link--logout"
+            href="{{ routes.account_logout_url }}"
+            data-no-instant
+          >
+            {{ 'header.account.logout' | t }}
+          </a>
+        </span>
+      </li>
+    {% endunless %}
+  {% endif %}
+  {% endcomment %}
+</ul>

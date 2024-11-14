@@ -1,0 +1,339 @@
+{% schema %}
+{
+  "name": "FAQ Section",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "faq",
+      "name": "FAQ",
+      "settings": [
+        {
+          "type": "text",
+          "id": "influencer_name",
+          "label": "Influencer Name",
+          "default": "John Doe"
+        },
+        {
+          "type": "textarea",
+          "id": "testimonial",
+          "label": "Testimonial",
+          "default": "This is an amazing product!"
+        },
+        {
+          "type": "text",
+          "id": "type_of_celebrity",
+          "label": "Type of Celebrity",
+          "default": "Actor"
+        },
+        {
+          "type": "image_picker",
+          "id": "profile_pic",
+          "label": "Profile Pic"
+        },
+        {
+          "type": "text",
+          "id": "brand",
+          "label": "Brand",
+          "default": "Brand Name"
+        },
+        {
+          "type": "select",
+          "id": "rating",
+          "label": "Rating",
+          "options": [
+            {
+              "value": "1",
+              "label": "1 Star"
+            },
+            {
+              "value": "2",
+              "label": "2 Stars"
+            },
+            {
+              "value": "3",
+              "label": "3 Stars"
+            },
+            {
+              "value": "4",
+              "label": "4 Stars"
+            },
+            {
+              "value": "5",
+              "label": "5 Stars"
+            }
+          ],
+          "default": "5"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ Section",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css" />
+
+<div class="featured-collection__container">
+
+  <h2 class="home-section--title">Testimonials</h2>
+  <div class="faq-section owl-carousel owl-theme">
+  {% for block in section.blocks %}
+
+    <div class="faq_outer_box">
+      <div class="faq_inner_box">
+        <div>
+          {% if block.settings.profile_pic %}
+            <img src="{{ block.settings.profile_pic | img_url: 'medium' }}" alt="{{ block.settings.influencer_name }}">
+          {% endif %}
+        </div>
+        <div class="faq_desc">
+          <h3><b>{{ block.settings.influencer_name }}</b></h3>
+          <p class="type_of_cele">{{ block.settings.type_of_celebrity }}</p>
+          <p class="brand">{{ block.settings.brand }}</p>                    
+          <p class="verified"><span><img src="https://cdn.shopify.com/s/files/1/0629/0387/7798/files/tick.png?v=1717567949"></span>Verified Customer</p>
+          <p class="rating">
+            <strong></strong> 
+            {% assign rating = block.settings.rating | plus: 0 %}
+            {% assign empty_stars = 5 | minus: rating %}
+            {% for i in (1..rating) %}
+              ★
+            {% endfor %}
+            {% for i in (1..empty_stars) %}
+              ☆
+            {% endfor %}
+          </p>
+        </div>
+      </div>
+      <div class="content_testimonial">
+        <p>{{ block.settings.testimonial }}</p>
+      </div>
+    </div>
+
+  {% endfor %}
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script defer  src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+
+<script>
+  $(document).ready(function(){
+    $(".faq-section").owlCarousel({
+      loop: true,
+      margin: 10,
+      nav: false,
+      dots: true,
+      autoplay:true,
+    autoplayTimeout:5000,
+    autoplayHoverPause:true,
+      responsive: {
+        0: {
+          items: 1,
+        },
+        600: {
+          items: 2
+        },
+        1000: {
+          items: 3
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+
+
+.faq-section.owl-theme .owl-dots .owl-dot.active span{
+  background: #2eb4ac;
+}
+
+.faq-section.owl-theme .owl-dots .owl-dot span{
+  background: #2eb4ac52;
+}
+
+.faq_desc p,
+.faq_desc h3 {
+   text-align: left !important; 
+}
+
+.faq-section.owl-carousel{
+  display: block;  
+}
+
+.faq-section {
+  /* padding: 20px; */
+}
+
+.influencer-profile {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.influencer-profile img {
+  border-radius: 50%;
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  margin-bottom: 20px;
+}
+
+.influencer-profile h2 {
+  margin: 10px 0;
+  font-size: 24px;
+}
+
+.influencer-profile p {
+  font-size: 16px;
+  margin: 5px 0;
+}
+
+.influencer-profile blockquote {
+  font-size: 18px;
+  font-style: italic;
+  color: #555;
+}
+
+.rating {
+  font-size: 18px;
+  color: #FFD700; /* Gold color for stars */
+}
+
+.faq_outer_box *{
+  margin: 0px;
+  padding: 0px;
+}
+
+.faq_outer_box {
+  background-color: #f7f7f7;
+  padding: 15px;
+}
+
+.faq_inner_box {
+  display: flex;
+  align-items: center;
+}
+
+.faq_desc {
+  margin-left: 15px;
+}
+
+.faq_inner_box img{
+  width: 130px !important;
+  border-radius: 50%;
+}
+
+.content_testimonial{
+  margin-top: 20px;
+}
+
+.faq_outer_box h3{
+  margin-bottom: 0px;
+  font-size: 16px;
+}
+
+.content_testimonial p{
+  font-size: 14px;
+  line-height: 24px;
+  text-align: left;
+}
+
+.type_of_cele,
+.brand,
+.verified {
+  margin-bottom: 2px;
+  font-size: 14px;
+}
+
+.content_testimonial {
+  max-height: 120px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.content_testimonial:hover{
+  overflow-y: scroll !important; 
+  -webkit-line-clamp: unset;
+}
+
+.verified{
+  color: #277833;
+  font-size: 12px;
+display: flex;
+    align-items: center;
+font-weight: 600;
+}
+
+.verified span img{
+  width: max-content !important;
+  margin-right: 5px;
+}
+
+.owl-stage {
+  display: flex;
+}
+
+.owl-item{
+      display: flex;
+    flex: 1 0 auto;
+}
+
+/* Scrollbar Styling */
+.faq_outer_box::-webkit-scrollbar {
+    width: 2px !important;
+}
+ 
+.faq_outer_box::-webkit-scrollbar-track {
+    background-color: #ebebeb !important;
+    -webkit-border-radius: 10px !important;
+    border-radius: 10px !important;
+}
+
+.faq_outer_box::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px !important;.
+    border-radius: 10px !important;
+    background: #6d6d6d !important; 
+}
+
+@media only screen and (max-width: 767px) {
+
+  .faq_outer_box h3{
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.content_testimonial p{
+  font-size: 13px;
+  line-height: 20px;
+  text-align: left;
+}
+
+.type_of_cele,
+.brand,
+.verified {
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.faq_inner_box img {
+    width: 95px !important;
+    border-radius: 50%;
+}
+
+.content_testimonial {
+    margin-top: 10px;
+}
+  
+}
+
+</style>
+

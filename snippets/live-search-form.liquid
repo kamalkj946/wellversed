@@ -1,0 +1,414 @@
+{% comment %}
+  @param quick_links {LinkedList}
+    Handle of menu to display
+
+  @param enable_images {Bool}
+    Display images in flydown
+
+  @param enable_content {Bool}
+    Display Articles and Pages results
+
+  @param placeholder {String|Nil}
+    Add a custom placeholder string
+{% endcomment %}
+
+{% assign placeholder = placeholder | default: nil %}
+
+{% assign has_quick_links = false %}
+{% if quick_links.links.size > 0 %}
+  {% assign has_quick_links = true %}
+{% endif %}
+
+{%- capture search_type -%}
+  {% if enable_content %}
+    article,page,product
+  {% else %}
+    product
+  {% endif %}
+{%- endcapture -%}
+
+{%- assign placeholder_text = blank -%}
+{%- if placeholder != blank -%}
+  {%- assign placeholder_text = placeholder -%}
+{% else %}
+  {%- assign placeholder_text = 'search.form.placeholder' | t -%}
+{%- endif -%}
+
+<div class="live-search" data-live-search>
+  {%- assign filter = blank -%}
+  {%- unless section.settings.filter_search_by == 'disabled' -%}
+    {%- assign filter_search_by = section.settings.filter_search_by -%}
+
+    {%- if search.performed -%}
+      {%- assign field_prefix = filter_search_by | append: ':' -%}
+      {%- if search.terms contains field_prefix -%}
+        {%- assign filter = search.terms | split: field_prefix | last -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endunless -%}
+
+  <form
+    class="
+      live-search-form
+      form-fields-inline
+      {% unless filter == blank %}live-search-filter-active{% endunless %}
+    "
+    action="{{ routes.search_url }}"
+    method="get"
+    role="search"
+    aria-label="Product"
+    data-live-search-form
+
+search_form_click="apple"
+  >
+    <input type="hidden" name="type" value="{{ search_type | replace: '  ', '' | strip_newlines }}">
+    <div class="form-field no-label">
+      {%- unless section.settings.filter_search_by == 'disabled' -%}
+        {%- assign search_filter_content_first = blank -%}
+        {%- assign search_filter_selected = blank -%}
+
+        {%- case filter_search_by -%}
+          {%- when 'product_type' -%}
+            {% capture search_filter_content_rest %}
+              {% for type in shop.types %}
+                {%- if type == blank -%}{%- continue -%}{%- endif -%}
+                {%- if type == filter -%}
+                  {%- assign search_filter_selected = type -%}
+                  {%- capture search_filter_content_first -%}
+                    <option value="{{ filter_search_by }}:{{ type | escape }}" selected>{{ type }}</option>
+                  {%- endcapture -%}
+                {%- else -%}
+                  <option value="{{ filter_search_by }}:{{ type | escape }}">{{ type }}</option>
+                {%- endif -%}
+              {% endfor %}
+            {% endcapture %}
+          {%- when 'tag' -%}
+            {%- capture search_filter_content_rest -%}
+              {%- for tag in collections.all.all_tags -%}
+                {%- assign split_tag = tag | split: '_' -%}
+                {%- if split_tag[0] == 'searchfilter' -%}
+                  {%- if tag == filter or collection.title == split_tag[1] -%}
+                    {%- assign search_filter_selected = split_tag[1] -%}
+                    {%- capture search_filter_content_first -%}
+                      <option value="{{ filter_search_by }}:{{ tag | escape }}" selected>{{ split_tag[1] }}</option>
+                    {%- endcapture -%}
+                  {%- else -%}
+                    <option value="{{ filter_search_by }}:{{ tag | escape }}">{{ split_tag[1] }}</option>
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endcapture -%}
+        {%- endcase -%}
+
+        <span class="form-field-select-wrapper live-search-filter-wrapper">
+          <select class="live-search-filter" data-live-search-filter data-filter-all="{{ 'search.form.filter_all' | t }}">
+            {{ search_filter_content_first }}
+            <option value="" {% if search_filter_selected == blank %}selected{% endif %}>{{ 'search.form.filter_all' | t }}</option>
+            <option value="" disabled>------</option>
+            {{ search_filter_content_rest }}
+          </select>
+          <label class="live-search-filter-label form-field-select" data-live-search-filter-label>
+            {%- if search_filter_selected != blank -%}
+              {{ search_filter_selected }}
+            {%- else -%}
+              {{ 'search.form.filter_all' | t }}
+            {%- endif -%}
+          </label>
+          {% render 'icon-chevron-down-small' %}
+        </span>
+      {%- endunless -%}
+      <input
+        class="form-field-input live-search-form-field"
+        type="text"
+        name="q"
+        aria-label="{{ 'search.form.label' | t }}"
+        placeholder="{{ placeholder_text | escape }}"
+        {% if search.performed %}
+          {% capture sanitized_terms %}
+            {%
+              render 'search-sanitizer',
+              search_terms: search.terms
+            %}
+          {% endcapture %}
+
+          {% assign sanitized_terms = sanitized_terms | strip %}
+          value="{{ sanitized_terms }}"
+        {% endif %}
+        autocomplete="off"
+        onfocusout="search_custom();"
+        data-live-search-input>
+      <button
+        class="live-search-takeover-cancel"
+        type="button"
+        data-live-search-takeover-cancel>
+        {{ 'search.form.cancel' | t }}
+      </button>
+
+      <button
+        class="live-search-button"
+        type="submit"
+        aria-label="{{ 'general.accessibility.search' | t }}"
+        data-live-search-submit
+      >
+        <span class="search-icon search-icon--inactive">
+          {% render 'icon-search' %}
+        </span>
+        <span class="search-icon search-icon--active">
+          {% render 'icon-spinner' %}
+        </span>
+      </button>
+    </div>
+
+    <div class="search-flydown" data-live-search-flydown>
+      {% comment %}
+         <ul class="search-brand-rk grid-container">
+            {%- for collection in collections %}
+               {% if collection.handle == 'breakfast' or collection.handle == 'wellcore-pre-workout-range' or collection.handle == 'high-protein' or collection.handle == 'sugar-free' %}
+                  <li>
+                     <div class="grid-item">
+                        <a href="{{ collection.url }}">
+                           <img height="35" width="35" src="/cdn/shop/{{ collection.image.src }}">
+                           <span class="caption">{{ collection.title }}</span>
+                        </a>
+                     </div>
+                  </li>
+               {% endif %}
+            {% endfor %}
+         </ul>
+       {% endcomment %}
+      <div class="search-flydown--placeholder" data-live-search-placeholder>
+        <div class="search-flydown--product-items">
+  
+          
+            <div class="search-listing-on-keyup"></div>
+           <div hidden class="search-recent-not-found"></div>
+          <div class="search-recent-onfocuout"></div>
+          
+           {% comment %}
+            <a class="search-flydown--product search-flydown--product" href="#">
+              {% if enable_images %}
+                <div class="search-flydown--product-image">
+                  {{ 'image' | placeholder_svg_tag: 'placeholder--image placeholder--content-image' }}
+                </div>
+              {% endif %}
+
+              <div class="search-flydown--product-text">
+                <span class="search-flydown--product-title placeholder--content-text"></span>
+                <span class="search-flydown--product-price placeholder--content-text"></span>
+              </div>
+            </a>
+           {% endcomment %}
+        </div>
+      </div>
+
+      <div class="search-flydown--results {% if enable_content %}search-flydown--results--content-enabled{% endif %}" data-live-search-results></div>
+
+      {% if has_quick_links %}
+        <div class="search-flydown--quicklinks" data-live-search-quick-links>
+          <span class="search-flydown--quicklinks-title">{{ quick_links.title }}</span>
+
+          <ul class="search-flydown--quicklinks-list">
+            {% for link in quick_links.links %}
+              <li class="search-flydown--quicklinks-item">
+                <a class="search-flydown--quicklinks-link" href="{{ link.url }}">
+                  {{ link.title }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+  </form>
+</div>
+ <script>
+   let url = "{{shop.url}}/products/";
+  //    var products = {{ collections.all.products | json }};
+  // let matchingProducts = []
+   const newDiv = document.createElement("div");
+newDiv.className = 'recent-search-js';
+document.querySelector('.search-recent-onfocuout').append(newDiv)
+ setTimeout(()=>{   search_custom() },1000)
+ function search_custom(){ 
+var storedData = localStorage.getItem("recent-search-data");
+   if(storedData == null) return;
+var retrievedArray = JSON.parse(storedData);
+     $('.recent-search-js').html("");
+retrievedArray.map((item,index)=>{
+     if (index >= 5) {
+            return;
+        }
+   fetch(url+item+'.js')
+    .then(data=>data.json())
+    .then(data=>{
+          $('.recent-search-js').append(`
+          <div class="cart-item-list">
+            <div class="left-section">
+              <img src="${data.featured_image}" alt="${data.title}">
+            </div>
+            <div class="right-section">
+            <h2>${data.title}</h2>
+            <div class="right-bottom-section">
+              <div class="item-desc" product-get="${data.id}">
+               ₹ ${data.price/100}.00
+              </div>
+            </div>
+            </div>
+      </div>`);
+    }).catch(Error=>{console.log(Error)})
+})
+
+
+ }
+
+function displayProductTags(element) {  
+const newStr = `${element.value[0].toUpperCase()}${element.value.slice(1)}`;
+document.querySelector('[data-live-search-input]').value = newStr
+  var products = {{ collections.all.products | json }};
+  for (var i = 0; i < products.length; i++) {
+    var product = products[i];
+     var productTags = product.tags; 
+   // console.log(element.value.slice(0, 3))
+  // const inputValue = element.value;
+   // if (inputValue.length > 3) {
+   if(product.title.match(element.value.slice(0, 3))){
+    for (var j = 0; j < 5; j++) {
+      var tag = productTags[j] 
+
+      var ancer = document.createElement('a');      
+      ancer.href = "https://shop-wellversed.myshopify.com/collections/"+tag;
+      ancer.innerText  = tag;
+      ancer.innerHTML = "<span class='tag-json'>"+tag+"</span><span class='ncategories'> In all Categories</span>";
+      ancer.className = "in_all_categories";
+      ancer.setAttribute('tages_get',tag)
+      ancer.appendChild(document.createElement("br"));
+      document.querySelector('.search-listing-on-keyup').append(ancer)
+    }
+  }
+   // }
+    
+
+  }
+
+}
+ 
+let obje = document.querySelector('[data-live-search-input]')
+obje.onkeyup = function(){
+     document.querySelector('.search-listing-on-keyup').innerHTML = "";
+ var interval = setInterval(()=>{
+      displayProductTags(obje)
+  },100)
+  setTimeout(()=>{
+      clearInterval(interval)
+var object = document.querySelectorAll('[tages_get]');
+var seenValues = [];
+
+for (var i = 0; i < object.length; i++) {
+  var current = object[i].getAttribute('tages_get');
+  
+  if (seenValues.includes(current)) {
+    object[i].remove();
+  } else {
+    seenValues.push(current);
+  }
+
+
+}
+if(object.length > 10){
+ for (var a = 0; a > 10; a++) {
+    object[i].remove();
+ 
+}   
+}
+if(object.length < 1){
+   document.querySelector('.search-recent-not-found').style.display = 'block';
+     document.querySelector('.search-recent-not-found').innerHTML = '<p class="not-data-found">Results Found : "'+obje.value+'"</p>';
+}else{
+  document.querySelector('.search-recent-not-found').style.display = 'none';
+}
+    
+  },500)
+
+}
+
+
+
+
+document.addEventListener("DOMContentLoaded", (event) => {
+    $('.live-search-form-field').on('focus', function(){
+
+   $('.search-flydown').show()
+})
+
+$('body:first').on('click', function(e){
+
+    if($(e.target).parents('.live-search-form.form-fields-inline').attr('search_form_click') != 'apple'){
+$('.search-flydown').hide();
+        
+    }
+
+
+    
+})
+});
+  
+
+
+
+
+
+        
+  </script>
+
+
+  <!-- <style>
+ul.search-brand-rk { 
+  display: flex; 
+    display: flex;
+    list-style: none;
+    padding: 0 40px;
+    justify-content: space-between;
+}
+
+ul.search-brand-rk > li > div img {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+}    
+  
+  </style> -->
+
+  <style>
+.grid-container {
+   list-style-type: none;
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Adjust column width as needed */
+   gap: 20px; /* Adjust the gap between grid items */
+   text-align: center;
+   justify-content: center;
+   padding: 0;
+}
+
+.grid-item {
+   text-align: center;
+}
+
+.grid-item a {
+   text-decoration: none;
+   color: inherit;
+}
+
+.grid-item img {
+   display: block;
+   margin: 0 auto;
+   width: 100px; /* Adjust image width as needed */
+   height: 100px; /* Adjust image height as needed */
+}
+
+.caption {
+   display: block;
+   margin-top: 10px; /* Adjust the spacing between image and text */
+}
+
+</style>

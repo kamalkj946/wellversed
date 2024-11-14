@@ -1,0 +1,360 @@
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="static-footer">
+</script>
+
+<footer role="contentinfo" aria-label="Footer">
+  <section class="site-footer-wrapper">
+    {% if section.blocks.size %}
+      <div class="site-footer-item">
+        <div class="site-footer-blocks column-count-{{ section.blocks.size }}">
+          {% render 'footer-block' for section.blocks as block %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="site-footer-item">
+      <div class="site-footer-information">
+        <div class="site-footer-left">
+
+          {% if linklists[section.settings.additional_menu].links != blank %}
+            <nav
+              class="site-footer-navigation"
+              aria-label="{{ 'general.accessibility.nav_footer' | t }}"
+            >
+              {%
+                render 'navlist',
+                menu_list: linklists[section.settings.additional_menu].links,
+                depth: 1,
+                max_depth: 1,
+                aria_expanded: true,
+              %}
+            </nav>
+          {% endif %}
+
+          <p class="site-footer-credits">
+            {% assign year = 'now' | date: '%Y' %}
+            {{ 'footer.general.copyright_html' | t: year: year, shop_name: shop.name }} 
+            {% comment %}
+            | Shopify Store by <a href="https://makkpress.com/" target="_blank"> MakkPress</a>
+            {% endcomment %}
+          </p>
+
+            {% comment %}           
+              <p class="site-footer-credits">
+                {{ powered_by_link }}
+              </p> 
+            {% endcomment %}
+        </div>
+
+        {%- assign country_selector = section.settings.show_currency_selector -%}
+        {%- assign locale_selector = section.settings.show_locale_selector -%}
+
+        {%- if section.settings.payment_icons or currency_selector or locale_selector -%}
+          <div class="site-footer-right">
+            {% comment %}Inject @pixelunion/shopify-cross-border/cross-border begin{% endcomment %}
+            <div class="shopify-cross-border">
+              {% if locale_selector and localization.available_languages.size > 1 %}
+                {% comment %}Inject @pixelunion/shopify-cross-border/multi-language begin{% endcomment %}
+                {% comment %} Generate a "random" number so ids are unique {% endcomment %}
+                {% assign unique_id = "now" | date: "%N" | modulo: 1000 %}
+                <noscript>
+                  {%- form 'localization' -%}
+                    <details class="disclosure">
+                      <summary>
+                        <span class="disclosure__toggle">
+                          {{ form.current_locale.endonym_name | capitalize }}
+                        </span>
+                      </summary>
+                      <div class="disclosure-list disclosure-list--visible">
+                        {% for locale in form.available_locales %}
+                          <div class="disclosure-list__item-wrapper disclosure-list__item">
+                            <input
+                              type="radio"
+                              id="{{ locale.iso_code }}"
+                              name="locale_code"
+                              value="{{ locale.iso_code }}"
+                              {% if locale.iso_code == form.current_locale.iso_code %}checked{% endif %}
+                            >
+                            <label class="disclosure-list__item--label" for="{{ locale.iso_code }}">{{ locale.endonym_name | capitalize }}</label>
+                          </div>
+                        {% endfor %}
+                        <button class="disclosure__submit" type="submit">{{ 'general.language.submit_button_label' | t }}</button>
+                      </div>
+                    </details>
+                  {%- endform -%}
+                </noscript>
+                
+                {%- form 'localization' -%}
+                  <div class="selectors-form__item selectors-form--no-js-hidden">
+                    <div class="disclosure" data-disclosure-locale>
+                      <h2 class="visually-hidden" id="lang-heading-{{ unique_id }}">
+                        {{ 'general.language.dropdown_label' | t }}
+                      </h2>
+                
+                      <button
+                        type="button"
+                        class="disclosure__toggle"
+                        aria-expanded="false"
+                        aria-controls="lang-list-{{ unique_id }}"
+                        aria-describedby="lang-heading-{{ unique_id }}"
+                        data-disclosure-toggle
+                      >
+                        {{ form.current_locale.endonym_name | capitalize }}
+                      </button>
+                      <ul id="lang-list-{{ unique_id }}" class="disclosure-list" data-disclosure-list>
+                        {% for locale in form.available_locales %}
+                          <li>
+                            <a class="disclosure-list__item {% if locale.iso_code == form.current_locale.iso_code %}disclosure-list__item--current{% endif %}" href="#" lang="{{ locale.iso_code }}" {% if locale.iso_code == form.current_locale.iso_code %}aria-current="true"{% endif %} data-value="{{ locale.iso_code }}" data-disclosure-option>
+                              <span class="disclosure-list__option">{{ locale.endonym_name | capitalize }}</span>
+                            </a>
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                      <input type="hidden" name="locale_code" id="LocaleSelector-{{ unique_id }}" value="{{ form.current_locale.iso_code }}" data-disclosure-input/>
+                    </div>
+                  </div>
+                {%- endform -%}
+                {% comment %}Inject @pixelunion/shopify-cross-border/multi-language end{% endcomment %}
+            
+              {% endif %}
+            
+              {% if country_selector and localization.available_countries.size > 1 %}
+                {% comment %}Inject @pixelunion/shopify-cross-border/multi-country begin{% endcomment %}
+                {% comment %} Generate a "random" number so ids are unique {% endcomment %}
+                {% assign unique_id = "now" | date: "%N" | modulo: 1000 %}
+                <noscript>
+                  {%- form 'localization' -%}
+                    <details class="disclosure">
+                      <summary>
+                        <span class="disclosure__toggle">
+                          {{ localization.country.name }} ({{ localization.country.currency.iso_code }}{% if localization.country.currency.symbol %}{{ localization.country.currency.symbol }}{% endif %})
+                        </span>
+                      </summary>
+                      <div class="disclosure-list disclosure-list--visible">
+                        {% for country in localization.available_countries %}
+                          <div class="disclosure-list__item-wrapper disclosure-list__item">
+                            <input
+                              type="radio"
+                              id="{{ country.iso_code }}"
+                              name="country_code"
+                              value="{{ country.iso_code }}"
+                              {% if country.iso_code == localization.country.iso_code %}checked{% endif %}
+                            >
+                            <label class="disclosure-list__item--label" for="{{ country.iso_code }}">{{ country.name }} ({{ country.currency.iso_code }}{%- if country.currency.symbol -%} {{ country.currency.symbol }}{%- endif -%})</label>
+                          </div>
+                        {% endfor %}
+                        <button class="disclosure__submit" type="submit">{{ 'general.country.submit_button_label' | t }}</button>
+                      </div>
+                    </details>
+                  {%- endform -%}
+                </noscript>
+                
+                {%- form 'localization' -%}
+                  <div class="selectors-form__item selectors-form--no-js-hidden">
+                    <div class="disclosure" data-disclosure-country>
+                      <h2 class="visually-hidden" id="country-heading-{{ unique_id }}">
+                        {{ 'general.country.dropdown_label' | t }}
+                      </h2>
+                
+                      <button
+                        type="button"
+                        class="disclosure__toggle"
+                        aria-expanded="false"
+                        aria-controls="country-list-{{ unique_id }}"
+                        aria-describedby="country-heading-{{ unique_id }}"
+                        data-disclosure-toggle
+                      >
+                        {{ localization.country.name }}
+                        <span class="disclosure-list__option-code"> 
+                          ({{ localization.country.currency.iso_code }}
+                          {% if localization.country.currency.symbol %} {{ localization.country.currency.symbol }}{% endif %})
+                        </span>
+                      </button>
+                      <ul id="country-list-{{ unique_id }}" class="disclosure-list" data-disclosure-list>
+                        {% for country in localization.available_countries %}
+                          <li>
+                            <a class="disclosure-list__item {% if country.iso_code == localization.country.iso_code %}disclosure-list__item--current{% endif %}" href="#" {% if country.iso_code == localization.country.iso_code %}aria-current="true"{% endif %} data-value="{{ country.iso_code }}" data-disclosure-option>
+                              <span class="disclosure-list__option">{{ country.name }}</span>
+                              <span class="disclosure-list__option-code">
+                                ({{ country.currency.iso_code }}
+                                {% if country.currency.symbol %} {{ country.currency.symbol }}{%- endif -%})
+                              </span>
+                            </a>
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                      <input type="hidden" name="country_code" id="CountrySelector-{{ unique_id }}" value="{{ localization.country.iso_code }}" data-disclosure-input/>
+                    </div>
+                  </div>
+                {%- endform -%}
+                {% comment %}Inject @pixelunion/shopify-cross-border/multi-country end{% endcomment %}
+            
+              {% endif %}
+            </div>
+            {% comment %}Inject @pixelunion/shopify-cross-border/cross-border end{% endcomment %}
+
+            {% if section.settings.payment_icons and shop.enabled_payment_types.size > 0 %}
+              <ul class="payment-icons">
+                {% for type in shop.enabled_payment_types %}
+                  <li class="payment-icons-item">
+                    {{ type | payment_type_svg_tag }}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          <div class="payment-icons">
+              <ul class="list-inline">
+                <li><svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 82 64"> <title>cc-visa</title> <path d="M70.528 35.328h-4.928q0.512-1.28 2.368-6.336l0.128-0.384q0.128-0.32 0.32-0.896t0.32-0.96l0.448 1.984zM18.944 33.024l-2.048-10.496q-0.384-1.984-2.688-1.984h-9.536l-0.128 0.512q11.136 2.816 14.4 11.968zM25.344 20.544l-5.76 15.68-0.64-3.2q-0.896-2.496-3.008-4.608t-4.672-3.2l4.8 18.24h6.272l9.28-22.912h-6.272zM30.336 43.52h5.888l3.712-22.976h-5.888zM57.728 21.12q-2.432-0.96-5.312-0.96-4.352 0-7.168 2.112t-2.816 5.504q-0.064 3.584 5.184 6.208 1.728 0.768 2.368 1.472t0.704 1.344q0 1.088-1.088 1.664t-2.432 0.576q-3.072 0-5.568-1.216l-0.832-0.384-0.832 5.184q2.688 1.216 6.656 1.216 4.608 0 7.424-2.112t2.88-5.76q0-3.776-4.992-6.208-1.728-0.896-2.56-1.472t-0.768-1.344q0-0.832 0.896-1.408t2.496-0.576q2.496-0.064 4.416 0.832l0.576 0.32zM72.96 20.544h-4.608q-2.304 0-3.072 1.984l-8.832 20.992h6.208l1.28-3.456h7.552q0.192 0.768 0.704 3.456h5.504zM82.304 9.152v45.696q0 1.856-1.344 3.2t-3.264 1.408h-73.152q-1.856 0-3.2-1.408t-1.344-3.2v-45.696q0-1.856 1.344-3.2t3.2-1.408h73.152q1.856 0 3.264 1.408t1.344 3.2z"></path> </svg></li>
+                <li><svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 82 64"> <title>cc-paypal</title> <path d="M26.624 32.384q0 1.28-0.896 2.176t-2.24 0.896q-1.088 0-1.664-0.576t-0.64-1.6q0-1.344 0.896-2.24t2.24-0.896q0.96 0 1.6 0.576t0.704 1.664zM54.656 27.008q0 1.536-0.768 2.048t-2.368 0.576h-1.152l0.576-3.84q0.064-0.384 0.512-0.384h0.64q0.768 0 1.216 0.064t0.896 0.448 0.448 1.088zM67.2 32.384q0 1.28-0.96 2.176t-2.176 0.896q-1.024 0-1.664-0.576t-0.64-1.6q0-1.344 0.896-2.24t2.176-0.896q1.024 0 1.664 0.576t0.704 1.664zM18.304 26.24q0-2.112-1.344-3.072t-3.584-0.896h-5.76q-0.64 0-0.704 0.64l-2.368 14.592q0 0.192 0.128 0.384t0.384 0.192h2.688q0.704 0 0.768-0.704l0.64-3.904q0.064-0.32 0.256-0.448t0.576-0.256 0.576-0.064 0.704 0.064 0.512 0q3.072 0 4.8-1.728t1.728-4.8zM29.376 37.376l1.472-9.28q0-0.256-0.128-0.448t-0.384-0.128h-2.688q-0.512 0-0.64 1.152-0.96-1.408-3.392-1.408-2.56 0-4.352 1.92t-1.792 4.544q0 2.112 1.216 3.328t3.328 1.28q0.96 0 2.048-0.448t1.728-1.152q-0.128 0.448-0.128 0.768 0 0.576 0.448 0.576h2.432q0.704 0 0.832-0.704zM45.312 27.968q0-0.128-0.128-0.32t-0.32-0.128h-2.752q-0.384 0-0.64 0.32l-3.776 5.568-1.6-5.312q-0.192-0.576-0.768-0.576h-2.688q-0.192 0-0.32 0.128t-0.128 0.32q0 0.128 0.704 2.112t1.472 4.416 0.832 2.496q-2.88 4.032-2.88 4.288 0 0.448 0.448 0.448h2.752q0.384 0 0.64-0.32l9.088-13.184q0.064-0.064 0.064-0.256zM58.88 26.24q0-2.112-1.344-3.072t-3.584-0.896h-5.696q-0.704 0-0.768 0.64l-2.368 14.592q0 0.192 0.128 0.384t0.384 0.192h2.88q0.448 0 0.576-0.448l0.64-4.16q0.064-0.32 0.256-0.448t0.576-0.256 0.576-0.064 0.704 0.064 0.512 0q3.072 0 4.8-1.728t1.728-4.8zM69.952 37.376l1.472-9.28q0-0.256-0.128-0.448t-0.384-0.128h-2.688q-0.512 0-0.64 1.152-0.896-1.408-3.392-1.408-2.56 0-4.352 1.92t-1.792 4.544q0 2.112 1.216 3.328t3.328 1.28q1.024 0 2.112-0.448t1.664-1.152q0 0.064-0.064 0.32t-0.064 0.448q0 0.576 0.448 0.576h2.432q0.704 0 0.832-0.704zM77.696 22.784v-0.064q0-0.448-0.448-0.448h-2.624q-0.384 0-0.448 0.384l-2.368 14.848v0.064q0 0.192 0.128 0.32t0.384 0.192h2.304q0.704 0 0.768-0.704zM14.016 27.584q-0.192 1.216-0.96 1.6t-2.112 0.448h-1.216l0.64-3.84q0.064-0.384 0.448-0.384h0.704q1.408 0 2.048 0.448t0.448 1.728zM82.304 9.152v45.696q0 1.856-1.344 3.2t-3.264 1.408h-73.152q-1.856 0-3.2-1.408t-1.344-3.2v-45.696q0-1.856 1.344-3.2t3.2-1.408h73.152q1.856 0 3.264 1.408t1.344 3.2z"></path> </svg></li>
+                <li><svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 82 64"> <title>cc-discover</title> <path d="M11.2 27.776q0 1.792-1.28 2.944-1.088 0.96-3.2 0.96h-0.64v-7.872h0.64q2.176 0 3.2 0.96 1.28 1.152 1.28 3.008zM74.624 25.408q0 1.856-2.304 1.856h-0.704v-3.584h0.768q2.24 0 2.24 1.728zM13.568 27.776q0-2.688-1.792-4.352t-4.608-1.664h-3.392v11.904h3.392q2.688 0 4.288-1.344 2.112-1.792 2.112-4.544zM14.656 33.664h2.304v-11.904h-2.304v11.904zM26.048 30.080q0-1.472-0.704-2.24t-2.688-1.472q-1.024-0.384-1.408-0.704t-0.384-0.832q0-0.576 0.448-0.896t1.28-0.384q1.024 0 1.856 0.96l1.216-1.6q-1.472-1.28-3.456-1.28-1.6 0-2.688 0.96t-1.024 2.432q0 1.216 0.64 1.984t2.24 1.28q1.344 0.448 1.6 0.704 0.704 0.384 0.704 1.152t-0.512 1.216-1.28 0.512q-1.728 0-2.496-1.6l-1.536 1.408q1.6 2.304 4.096 2.304 1.856 0 3.008-1.088t1.088-2.816zM36.032 33.28v-2.752q-1.344 1.344-2.816 1.344-1.728 0-2.88-1.152t-1.088-2.944q0-1.728 1.088-2.944t2.752-1.216q1.536 0 2.944 1.408v-2.752q-1.472-0.768-2.88-0.768-2.624 0-4.48 1.856t-1.856 4.416 1.856 4.352 4.416 1.856q1.536 0 2.944-0.704zM80 54.848v-18.816q-2.304 1.408-5.184 3.008t-8.448 4.16-11.776 4.928-14.912 4.8-17.984 4.224h56q0.96 0 1.6-0.704t0.704-1.6zM49.6 27.84q0-2.688-1.856-4.608t-4.608-1.856-4.544 1.856-1.92 4.608 1.92 4.544 4.544 1.92 4.608-1.92 1.856-4.544zM55.040 33.984l5.12-12.224h-2.496l-3.264 8-3.136-8h-2.56l5.056 12.224h1.28zM61.248 33.664h6.528v-1.984h-4.224v-3.2h4.096v-2.048h-4.096v-2.624h4.224v-2.048h-6.528v11.904zM75.2 33.664h2.816l-3.712-4.992q2.688-0.576 2.688-3.328 0-1.728-1.088-2.624t-3.136-0.96h-3.456v11.904h2.304v-4.736h0.32zM82.304 9.344v45.312q0 1.984-1.408 3.392t-3.328 1.408h-72.832q-1.984 0-3.328-1.408t-1.408-3.392v-45.312q0-1.984 1.408-3.392t3.328-1.408h72.832q1.984 0 3.328 1.408t1.408 3.392z"></path> </svg></li>
+                <li><svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 82 64"> <title>cc-amex</title> <path d="M4.224 24.384h3.2l-1.6-3.904zM26.432 43.136l2.624-2.816-2.496-2.816h-5.824v1.728h5.12v1.984h-5.12v1.92h5.696zM32.064 40.384l3.52 3.904v-7.744zM42.368 38.656q0-1.152-1.408-1.152h-3.008v2.432h2.944q1.472 0 1.472-1.28zM52.672 38.528q0-1.024-1.472-1.024h-2.944v2.176h2.88q1.536 0 1.536-1.152zM42.752 21.888q0-1.024-1.472-1.024h-2.944v2.112h2.88q1.536 0 1.536-1.088zM59.136 24.384h3.2l-1.6-3.904zM24.96 18.816v9.664h-2.368v-7.552l-3.328 7.552h-2.048l-3.328-7.552v7.552h-4.736l-0.896-2.112h-4.8l-0.896 2.112h-2.496l4.096-9.664h3.456l3.904 9.152v-9.152h3.776l3.072 6.592 2.752-6.592h3.84zM44.8 38.656q0 0.704-0.192 1.28t-0.448 0.896-0.832 0.576-0.96 0.384-1.088 0.128-1.152 0.064-1.152-0.064-1.024 0v3.264h-4.544l-2.816-3.2-3.008 3.2h-9.088v-9.664h9.28l2.816 3.136 2.944-3.136h7.424q3.84 0 3.84 3.136zM34.432 26.496v1.984h-7.744v-9.664h7.744v2.048h-5.44v1.728h5.312v1.984h-5.312v1.92h5.44zM82.304 46.464v8.192q0 1.984-1.408 3.392t-3.328 1.408h-72.832q-1.984 0-3.328-1.408t-1.408-3.392v-24.256h3.968l0.896-2.176h1.984l0.896 2.176h7.744v-1.6l0.704 1.6h4.032l0.704-1.664v1.664h19.328v-3.52h0.384q0.32 0 0.32 0.448v3.072h9.984v-0.768q0.832 0.384 1.984 0.64t1.856 0.192 2.24 0 1.856-0.064l0.896-2.176h1.984l0.896 2.176h8.128v-2.048l1.152 2.048h6.528v-13.504h-6.4v1.6l-0.896-1.6h-6.656v1.6l-0.768-1.6h-8.896q-2.496 0-3.904 0.832v-0.832h-6.144v0.832q-0.896-0.832-2.624-0.832h-22.4l-1.536 3.52-1.536-3.52h-7.104v1.6l-0.768-1.6h-6.016l-2.816 6.4v-13.952q0-1.984 1.408-3.392t3.328-1.408h72.832q1.984 0 3.328 1.408t1.408 3.392v24.256h-4.288q-1.856 0-2.88 0.768v-0.768h-6.336q-1.984 0-2.816 0.768v-0.768h-11.264v0.768q-1.088-0.768-3.136-0.768h-7.424v0.768q-0.832-0.768-3.264-0.768h-8.384l-1.92 2.048-1.792-2.048h-12.416v13.44h12.224l1.984-2.048 1.856 2.048h7.488v-3.136h0.768q2.112 0 3.2-0.448v3.584h6.272v-3.52h0.256q0.256 0 0.384 0.064t0.064 0.384v3.072h18.88q2.048 0 3.136-0.832v0.832h6.016q2.112 0 3.392-0.576zM55.232 38.080q0 0.832-0.448 1.536t-1.216 1.088q0.896 0.32 1.216 0.896t0.32 1.664v1.92h-2.304v-1.6q0-1.216-0.448-1.6t-1.664-0.32h-2.432v3.52h-2.304v-9.664h5.504q1.664 0 2.752 0.512t1.024 2.048zM45.312 21.44q0 0.832-0.448 1.536t-1.152 1.088q0.896 0.32 1.216 0.896t0.32 1.664v1.856h-2.368q0-0.32 0.064-0.96t0-0.832-0.128-0.704-0.32-0.576-0.64-0.256-1.024-0.128h-2.496v3.456h-2.304v-9.664l5.44 0.064q1.792 0 2.816 0.512t1.024 2.048zM64.192 43.2v1.984h-7.68v-9.664h7.68v1.984h-5.376v1.728h5.312v1.984h-5.312v1.92zM49.024 18.816v9.664h-2.368v-9.664h2.368zM73.728 42.112q0 3.072-3.648 3.072h-4.48v-2.112h4.48q1.216 0 1.216-0.832 0-0.576-0.576-0.768t-1.472-0.192-1.792-0.128-1.472-0.768-0.64-1.984q0-1.408 0.96-2.176t2.368-0.704h4.608v1.984h-4.224q-1.28 0-1.28 0.896 0 0.576 0.576 0.768t1.536 0.128 1.728 0.064 1.536 0.768 0.576 1.984zM82.304 40.32v3.584q-0.896 1.28-3.136 1.28h-4.48v-2.112h4.48q1.152 0 1.152-0.832 0-0.512-0.448-0.704t-1.088-0.192-1.472-0.064-1.408-0.32-1.088-0.832-0.448-1.728q0-1.408 0.96-2.176t2.368-0.704h4.608v1.984h-4.224q-1.28 0-1.28 0.896 0 0.768 1.024 0.832t2.432 0.128 2.048 0.96zM76.416 18.88v9.6h-3.328l-4.352-7.232v7.232h-4.672l-0.96-2.112h-4.8l-0.896 2.112h-2.624q-4.608 0-4.608-4.736 0-4.928 4.736-4.928h2.24v2.112q-0.256 0-1.024-0.064t-1.024 0-0.768 0.064-0.768 0.256-0.576 0.448-0.384 0.832-0.128 1.216q0 1.344 0.512 2.048t1.792 0.704h1.024l3.264-7.552h3.456l3.904 9.088v-9.088h3.52l4.096 6.72v-6.72h2.368z"></path> </svg></li>
+              </ul>
+            </div>
+          </div>
+  
+        {%- endif -%}
+      </div>
+    </div>
+  </section>
+  <style>
+  .whatsapp-icon {
+    visibility: hidden;
+  }
+</style>
+  <div class="footer-whatsaap">
+      <a href="https://wa.me/+919319157249" target="_blank" class="whatsapp-icon">
+        <img src="https://cdn.shopify.com/s/files/1/0656/1094/0666/t/1/assets/whatsapp.svg" class="whatsapp-icon" alt="whatsapp-icon" width="45px" height="45px;">
+        </a>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "t:sections.footer.name",
+  "max_blocks": 8,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.footer.header_1.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "payment_icons",
+      "label": "t:sections.footer.payment_icons.label",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:sections.footer.header_2.content",
+      "info": "t:sections.footer.header_2.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_locale_selector",
+      "label": "t:sections.footer.show_locale_selector.label",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:sections.footer.header_3.content",
+      "info": "t:sections.footer.header_3.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_currency_selector",
+      "label": "t:sections.footer.show_currency_selector.label",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:sections.footer.header_4.content"
+    },
+    {
+      "type": "link_list",
+      "id": "additional_menu",
+      "label": "t:sections.footer.additional_menu.label",
+      "default": "footer",
+      "info": "t:sections.footer.additional_menu.info"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "t:sections.footer.blocks.menu.name",
+      "settings": [
+        {
+          "type": "link_list",
+          "id": "menu",
+          "label": "t:sections.footer.blocks.menu.menu.label",
+          "default": "main-menu",
+          "info": "t:sections.footer.blocks.menu.menu.info"
+        }
+      ]
+    },
+    {
+      "type": "rich_text",
+      "name": "t:sections.footer.blocks.rich_text.name",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.footer.blocks.rich_text.title.label",
+          "default": "Rich text"
+        },
+        {
+          "type": "html",
+          "id": "text",
+          "label": "t:sections.footer.blocks.rich_text.text.label"
+        }
+      ]
+    },
+    {
+      "type": "social_accounts",
+      "name": "t:sections.footer.blocks.social_accounts.name",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "t:sections.footer.blocks.social_accounts.paragraph_1.content"
+        }
+      ]
+    },
+    {
+      "type": "newsletter",
+      "name": "t:sections.footer.blocks.newsletter.name",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.footer.blocks.newsletter.title.label",
+          "default": "Subscribe"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "t:sections.footer.blocks.newsletter.text.label",
+          "default": "<p>Invite customers to join your mailing list.</p>"
+        }
+      ]
+    }
+  ],
+  "default": {
+    "settings": {
+      "additional_menu": "footer"
+    },
+    "blocks": [
+      {
+        "type": "menu",
+        "settings": {}
+      },
+      {
+        "type": "newsletter",
+        "settings": {}
+      }
+    ]
+  }
+}
+{% endschema %}

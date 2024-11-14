@@ -1,0 +1,94 @@
+<div class="section-border">
+  <div class="promo-grid--container">
+    <div class="Categories-section">
+        <h2 class="home-section--title">{{ section.settings.title | escape }} <span><a href="{{ section.settings.view-url }}">{{ section.settings.view-all | escape }}</a></span></h2>
+  
+      <div class="Categories-row" data-flickity='{ "cellAlign": "left", "contain": true, "wrapAround": true, "prevNextButtons": true, "pageDots": false, "autoPlay": 3000, "arrowShape": "M65.29 11.99L27.28 50L65.3 87.99L70.25 83.06L37.19 50L70.26 16.94L65.29 11.99Z" }'>
+        {%- for block in section.blocks -%}
+          <div class="item">
+            <div class="img">
+              <a href="{{ block.settings.link }}"><img src="{{ block.settings.image.src | img_url: "large" }}" alt="{{ block.settings.image.alt }}" width="auto" height="auto" /></a>
+            </div>
+            <div class="content">
+              <div class="content-row">
+                <h4 class="heading"><a href="{{ block.settings.link }}">{{ block.settings.category-title }}</a></h4>
+                <p class="text">{{ block.settings.category-text }}</p>
+                <p class="button"><a href="{{ block.settings.link }}">Read More</a></p>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% schema %}
+  {
+    "name": "Categories section",
+    "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Heading"
+        },
+        {
+          "type": "text",
+          "id": "view-all",
+          "label": "View All"
+        },
+        {
+          "type": "url",
+          "id": "view-url",
+          "label": "View URL"
+        }
+    ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Categories Section",
+      "settings": [
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "category-title",
+          "label": "Category Title"
+        },
+        {
+          "type": "text",
+          "id": "category-text",
+          "label": "Category Text"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Collection Link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "category": "Image",
+      "name": "Categories-Section",
+      "blocks": [
+        {
+          "type": "image"
+        }
+      ]
+    }
+  ]        
+ }
+{% endschema %}
+
+{% stylesheet %}
+{% endstylesheet %}
+
+{% javascript %}
+{% endjavascript %}

@@ -1,0 +1,37 @@
+<!-- landingpageslider.liquid -->
+<section class="landing-page-slider">
+  <!-- Slider wrapper -->
+  <div class="slider">
+    {% for block in section.blocks %}
+      <div class="slide">
+        <img src="{{ block.settings.image | img_url: 'large' }}" alt="Slide Image">
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Landing Page Slider",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Slide Image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Slide Image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Landing Page Slider",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}

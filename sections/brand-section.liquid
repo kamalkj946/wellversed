@@ -1,0 +1,66 @@
+<div class="section-border">
+  <div class="promo-grid--container">
+    <div class="brand-section">
+      {%- if section.settings.title != blank -%}
+          {%- if section.settings.title != blank -%}
+            <h2 class="home-section--title">{{ section.settings.title | escape }}</h2>
+          {%- endif -%}
+      {%- endif -%}
+  
+      <div class="brand-row" data-flickity='{ "cellAlign": "left", "contain": true, "wrapAround": true, "prevNextButtons": true, "pageDots": false, "autoPlay": 3000, "arrowShape": "M65.29 11.99L27.28 50L65.3 87.99L70.25 83.06L37.19 50L70.26 16.94L65.29 11.99Z" }'>
+        {%- for block in section.blocks -%}
+          <div class="item">
+            <div class="img">
+              <a href="{{ block.settings.link }}"><img src="{{ block.settings.image.src | img_url: "large" }}" /></a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% schema %}
+  {
+    "name": "Brand section",
+    "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Heading"
+        }
+    ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Brand Section",
+      "settings": [
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "Image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "category": "Image",
+      "name": "Brand-Section",
+      "blocks": [
+        {
+          "type": "image"
+        }
+      ]
+    }
+  ]        
+ }
+{% endschema %}
+
+{% stylesheet %}
+{% endstylesheet %}
+
+{% javascript %}
+{% endjavascript %}

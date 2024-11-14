@@ -1,0 +1,648 @@
+{% comment %}
+  @param product
+
+  @param selected_variant
+
+  @param show_dynamic_checkout_button {Boolean}
+    If true, show dynamic checkout button
+{% endcomment %}
+
+{% if is_product_modal and show_dynamic_checkout_button %}
+  {% assign quickshop_smart_buttons = true %}
+{% endif %}
+
+{% if is_product_modal == false and show_dynamic_checkout_button %}
+  {% assign product_smart_buttons = true %}
+{% endif %}
+
+{% if product.selling_plan_groups.size > 0 %}
+  {% assign show_dynamic_checkout_button = false %}
+{% endif %}
+
+{% if selected_variant.available == false %}
+  {% assign quickshop_smart_buttons = false %}
+  {% assign product_smart_buttons = false %}
+{% endif %}
+
+{% assign product_form_class = '' %}
+
+{% if show_dcb %}
+  {% if product_smart_buttons or quickshop_smart_buttons %}
+    {% assign product_form_class = 'smart-payment-enabled' %}
+  {% endif %}
+{% endif %}
+
+{% form 'product', product, class: product_form_class, data-product-form: '' %}
+  {% comment %}
+    Display variant options for a product
+
+    @param product
+    @param selected_variant
+    @param style
+
+    @param enable_swatches
+    @param swatches_shape
+    @param swatches_option_trigger
+    @param swatches_option_style
+    @param swatches_product_page_size
+    @param swatch_colors
+
+    @param select_main_classes
+    @param select_classes
+    @param input_select_wrapper_classes
+    @param input_select_classes
+    @param input_select_label_classes
+    @param input_select_chevron_classes
+
+    @param radios_classes
+    @param option_header_classes
+    @param option_name_classes
+    @param option_values_classes
+    @param option_value_classes
+    @param option_value_label_classes
+    @param option_value_input_classes
+    @param option_value_name_classes
+
+    @param swatches_classes
+    @param option_swatch_wrapper_classes
+    @param option_swatch_classes
+    @param option_swatch_inner_classes
+  {% endcomment %}
+  {% assign product = product %}
+  {% assign selected_variant = selected_variant %}
+  {% assign style = settings.product_option_style %}
+  {% assign enable_swatches = settings.swatches_enable %}
+  {% assign sold_out_options = settings.sold_out_options %}
+  {% assign swatches_shape = settings.swatches_shape %}
+  {% assign swatches_option_trigger = settings.swatches_swatch_trigger %}
+  {% assign swatches_option_style = settings.swatches_option_style %}
+  {% assign swatches_product_page_size = settings.swatches_product_page_size %}
+  {% assign swatches_custom_colors = settings.swatches_custom_colors %}
+  {% assign swatch_file_type = 'files' %}
+  {% assign select_main_classes = 'form-options' %}
+  {% assign select_classes = 'form-field form-options' %}
+  {% assign input_select_wrapper_classes = 'form-field-select-wrapper' %}
+  {% assign input_select_classes = 'form-field-input form-field-select' %}
+  {% assign input_select_label_classes = 'form-field-title' %}
+  {% assign radios_classes = 'form-options form-options-selectable-boxes' %}
+  {% assign option_header_classes = 'options-selection__option-header' %}
+  {% assign option_name_classes = 'options-selection__option-name' %}
+  {% assign option_values_classes = 'options-selection__option-values' %}
+  {% assign option_value_classes = 'options-selection__option-value' %}
+  {% assign option_value_label_classes = 'options-selection__option-value-label' %}
+  {% assign option_value_input_classes = 'options-selection__option-value-input' %}
+  {% assign option_value_name_classes = 'options-selection__option-value-name' %}
+  {% assign swatches_classes = 'form-options form-options-swatches' %}
+  {% assign option_swatch_wrapper_classes = 'option-value-name option-value-swatch-wrapper' %}
+  {% assign option_swatch_classes = 'swatch' %}
+  {% assign option_swatch_inner_classes = 'swatch-inner' %}
+
+  {% comment %}Inject @pixelunion/shopify-variants-ui/variant-selection begin{% endcomment %}
+  {% comment %}
+    Display variant options for a product
+  
+    @param product
+    @param selected_variant
+    @param variant_selection_id
+    @param sold_out_options
+    @param style
+  
+    @param enable_swatches
+    @param swatches_shape
+    @param swatches_option_trigger
+    @param swatches_option_style
+    @param swatches_product_page_size
+    @param swatches_custom_colors
+  {% endcomment %}
+  
+  <variant-selection
+    {% if variant_selection_id != blank %}id="{{ variant_selection_id }}"{% endif %}
+    class="variant-selection"
+    product-url="{{ product.url }}.js"
+    variant="{% if selected_variant %}{{ selected_variant.id }}{% else %}not-selected{% endif %}"
+    data-variant-selection
+  >
+    {% if product.has_only_default_variant %}
+      <input
+        class="variant-selection__variants variant-selection__variants--default"
+        name="id"
+        type="hidden"
+        value="{{ product.variants.first.id }}"
+        data-variants
+      >
+    {% else %}
+      <noscript>
+        <style>
+          .variant-selection__variants {
+            display: block !important;
+          }
+        </style>
+      </noscript>
+      <select
+        class="variant-selection__variants"
+        name="id"
+        style="display: none"
+        data-variants
+      >
+        <option
+          value="not-selected"
+          disabled
+          {% if selected_variant == blank %}selected{% endif %}
+        >
+          {{ 'product.variants.choose_variant' | t }}
+        </option>
+        {% for variant in product.variants %}
+          <option
+            {% if selected_variant and selected_variant.id == variant.id %}selected{% endif %}
+            value="{{ variant.id }}"
+            {% unless variant.available %}disabled{% endunless %}
+          >
+            {{ variant.title }} - {{ variant.price | money }}
+          </option>
+        {% endfor %}
+      </select>
+  
+      {% comment %}Inject @pixelunion/shopify-variants-ui/options-selection begin{% endcomment %}
+      {% comment %}
+        Display variant options for a product
+      
+        @param product
+        @param selected_variant
+        @param variant_selection_id
+        @param sold_out_options
+        @param style
+      
+        @param enable_swatches
+        @param swatches_shape
+        @param swatches_option_trigger
+        @param swatches_option_style
+        @param swatches_product_page_size
+        @param swatches_custom_colors
+        @param swatch_file_type
+      {% endcomment %}
+      
+      <options-selection
+        {% if variant_selection_id != blank %}variant-selection="{{ variant_selection_id }}"{% endif %}
+        style="display: none;"
+        {% if sold_out_options == 'disabled' %}disable-unavailable{% endif %}
+        {% if sold_out_options == 'hidden' %}remove-unavailable{% endif %}
+        data-options-selection
+      >
+        <script>
+          (function() {
+            const scriptTag = document.scripts[document.scripts.length - 1];
+            const parentTag = scriptTag.parentNode;
+      
+            parentTag.style.display = '';
+          })()
+        </script>
+      
+        {% for option in product.options_with_values %}
+          {% assign option_index = forloop.index0 %}
+          {% assign show_swatches = false %}
+          {% if enable_swatches %}
+            {%- assign swatches_option_trigger = swatches_option_trigger | strip | downcase -%}
+            {%- assign option_name = option.name | strip | downcase -%}
+      
+            {% if option_name == swatches_option_trigger %}
+              {% assign show_swatches = true %}
+              {% assign swatch_option_key = 'option' | append: forloop.index %}
+            {% endif %}
+          {% endif %}
+      
+          {% if style == 'select' and show_swatches == false %}
+            {%
+              render 'options-select',
+              product: product,
+              selected_variant: selected_variant,
+              option: option,
+              option_index: option_index
+            %}
+          {% elsif style == 'radio' or show_swatches == true %}
+            {%
+              render 'options-radios',
+              product: product,
+              selected_variant: selected_variant,
+              option: option,
+              option_index: option_index,
+              show_swatches: show_swatches,
+              swatch_option_key: swatch_option_key,
+              swatch_size: swatches_product_page_size,
+              swatches_option_style: swatches_option_style,
+              swatch_file_type: swatch_file_type,
+              swatches_custom_colors: swatches_custom_colors,
+              swatches_shape: swatches_shape,
+            %}
+          {% endif %}
+        {% endfor %}
+      </options-selection>
+      {% comment %}Inject @pixelunion/shopify-variants-ui/options-selection end{% endcomment %}
+  
+    {% endif %}
+  </variant-selection>
+  {% comment %}Inject @pixelunion/shopify-variants-ui/variant-selection end{% endcomment %}
+
+
+  <div class="product-form--atc">
+    <div class="product-form__action-wrapper">
+      {%
+        render 'quantity-selector',
+        context: 'product',
+      %}
+<span onclick="check_cart({{ product.id }});" id="pp-adc">
+      <button id="AddToCart" 
+
+
+        class="
+          product-form--atc-button
+          {% if selected_variant and selected_variant.available == false %}
+            disabled
+          {% endif %}
+        "
+    
+        type="submit"
+        {% if selected_variant and selected_variant.available == false %}
+          disabled
+        {% endif %}
+        data-product-atc
+        {% if product.template_suffix contains 'pre-order' %}
+          data-product-atc-preorder
+        {% endif %}
+      >
+        <span class="atc-button--text" >
+          {% unless selected_variant and selected_variant.available == false %}
+          {% if product.template_suffix contains 'pre-order' %}
+              <svg width="18" height="18" viewBox="0 0 25 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M1 0C0.447715 0 0 0.447715 0 1C0 1.55228 0.447715 2 1 2H1.33877H1.33883C1.61048 2.00005 2.00378 2.23945 2.10939 2.81599L2.10937 2.816L2.11046 2.82171L5.01743 18.1859C5.12011 18.7286 5.64325 19.0852 6.18591 18.9826C6.21078 18.9779 6.23526 18.9723 6.25933 18.9658C6.28646 18.968 6.31389 18.9692 6.34159 18.9692H18.8179H18.8181C19.0302 18.9691 19.2141 18.9765 19.4075 18.9842L19.4077 18.9842C19.5113 18.9884 19.6175 18.9926 19.7323 18.9959C20.0255 19.0043 20.3767 19.0061 20.7177 18.9406C21.08 18.871 21.4685 18.7189 21.8028 18.3961C22.1291 18.081 22.3266 17.6772 22.4479 17.2384C22.4569 17.2058 22.4642 17.1729 22.4699 17.1396L23.944 8.46865C24.2528 7.20993 23.2684 5.99987 21.9896 6H21.9894H4.74727L4.07666 2.45562L4.07608 2.4525C3.83133 1.12381 2.76159 8.49962e-05 1.33889 0H1.33883H1ZM5.12568 8L6.8227 16.9692H18.8178H18.8179C19.0686 16.9691 19.3257 16.9793 19.5406 16.9877L19.5413 16.9877C19.633 16.9913 19.7171 16.9947 19.7896 16.9967C20.0684 17.0047 20.2307 16.9976 20.3403 16.9766C20.3841 16.9681 20.4059 16.96 20.4151 16.9556C20.4247 16.9443 20.4639 16.8918 20.5077 16.7487L21.9794 8.09186C21.9842 8.06359 21.9902 8.03555 21.9974 8.0078C21.9941 8.00358 21.9908 8.00108 21.989 8H5.12568ZM20.416 16.9552C20.4195 16.9534 20.4208 16.9524 20.4205 16.9523C20.4204 16.9523 20.4199 16.9525 20.4191 16.953L20.416 16.9552ZM10.8666 22.4326C10.8666 23.2982 10.195 24 9.36658 24C8.53815 24 7.86658 23.2982 7.86658 22.4326C7.86658 21.567 8.53815 20.8653 9.36658 20.8653C10.195 20.8653 10.8666 21.567 10.8666 22.4326ZM18.0048 24C18.8332 24 19.5048 23.2982 19.5048 22.4326C19.5048 21.567 18.8332 20.8653 18.0048 20.8653C17.1763 20.8653 16.5048 21.567 16.5048 22.4326C16.5048 23.2982 17.1763 24 18.0048 24Z" fill="currentColor"></path>
+              </svg> {{ 'product.buttons.pre_order' | t }}
+            {% else %}
+              <svg width="18" height="18" viewBox="0 0 25 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M1 0C0.447715 0 0 0.447715 0 1C0 1.55228 0.447715 2 1 2H1.33877H1.33883C1.61048 2.00005 2.00378 2.23945 2.10939 2.81599L2.10937 2.816L2.11046 2.82171L5.01743 18.1859C5.12011 18.7286 5.64325 19.0852 6.18591 18.9826C6.21078 18.9779 6.23526 18.9723 6.25933 18.9658C6.28646 18.968 6.31389 18.9692 6.34159 18.9692H18.8179H18.8181C19.0302 18.9691 19.2141 18.9765 19.4075 18.9842L19.4077 18.9842C19.5113 18.9884 19.6175 18.9926 19.7323 18.9959C20.0255 19.0043 20.3767 19.0061 20.7177 18.9406C21.08 18.871 21.4685 18.7189 21.8028 18.3961C22.1291 18.081 22.3266 17.6772 22.4479 17.2384C22.4569 17.2058 22.4642 17.1729 22.4699 17.1396L23.944 8.46865C24.2528 7.20993 23.2684 5.99987 21.9896 6H21.9894H4.74727L4.07666 2.45562L4.07608 2.4525C3.83133 1.12381 2.76159 8.49962e-05 1.33889 0H1.33883H1ZM5.12568 8L6.8227 16.9692H18.8178H18.8179C19.0686 16.9691 19.3257 16.9793 19.5406 16.9877L19.5413 16.9877C19.633 16.9913 19.7171 16.9947 19.7896 16.9967C20.0684 17.0047 20.2307 16.9976 20.3403 16.9766C20.3841 16.9681 20.4059 16.96 20.4151 16.9556C20.4247 16.9443 20.4639 16.8918 20.5077 16.7487L21.9794 8.09186C21.9842 8.06359 21.9902 8.03555 21.9974 8.0078C21.9941 8.00358 21.9908 8.00108 21.989 8H5.12568ZM20.416 16.9552C20.4195 16.9534 20.4208 16.9524 20.4205 16.9523C20.4204 16.9523 20.4199 16.9525 20.4191 16.953L20.416 16.9552ZM10.8666 22.4326C10.8666 23.2982 10.195 24 9.36658 24C8.53815 24 7.86658 23.2982 7.86658 22.4326C7.86658 21.567 8.53815 20.8653 9.36658 20.8653C10.195 20.8653 10.8666 21.567 10.8666 22.4326ZM18.0048 24C18.8332 24 19.5048 23.2982 19.5048 22.4326C19.5048 21.567 18.8332 20.8653 18.0048 20.8653C17.1763 20.8653 16.5048 21.567 16.5048 22.4326C16.5048 23.2982 17.1763 24 18.0048 24Z" fill="currentColor"></path>
+              </svg> {{ 'product.buttons.add_to_cart' | t }}
+            {% endif %}
+          {% else %}
+            <svg width="18" height="18" viewBox="0 0 25 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M1 0C0.447715 0 0 0.447715 0 1C0 1.55228 0.447715 2 1 2H1.33877H1.33883C1.61048 2.00005 2.00378 2.23945 2.10939 2.81599L2.10937 2.816L2.11046 2.82171L5.01743 18.1859C5.12011 18.7286 5.64325 19.0852 6.18591 18.9826C6.21078 18.9779 6.23526 18.9723 6.25933 18.9658C6.28646 18.968 6.31389 18.9692 6.34159 18.9692H18.8179H18.8181C19.0302 18.9691 19.2141 18.9765 19.4075 18.9842L19.4077 18.9842C19.5113 18.9884 19.6175 18.9926 19.7323 18.9959C20.0255 19.0043 20.3767 19.0061 20.7177 18.9406C21.08 18.871 21.4685 18.7189 21.8028 18.3961C22.1291 18.081 22.3266 17.6772 22.4479 17.2384C22.4569 17.2058 22.4642 17.1729 22.4699 17.1396L23.944 8.46865C24.2528 7.20993 23.2684 5.99987 21.9896 6H21.9894H4.74727L4.07666 2.45562L4.07608 2.4525C3.83133 1.12381 2.76159 8.49962e-05 1.33889 0H1.33883H1ZM5.12568 8L6.8227 16.9692H18.8178H18.8179C19.0686 16.9691 19.3257 16.9793 19.5406 16.9877L19.5413 16.9877C19.633 16.9913 19.7171 16.9947 19.7896 16.9967C20.0684 17.0047 20.2307 16.9976 20.3403 16.9766C20.3841 16.9681 20.4059 16.96 20.4151 16.9556C20.4247 16.9443 20.4639 16.8918 20.5077 16.7487L21.9794 8.09186C21.9842 8.06359 21.9902 8.03555 21.9974 8.0078C21.9941 8.00358 21.9908 8.00108 21.989 8H5.12568ZM20.416 16.9552C20.4195 16.9534 20.4208 16.9524 20.4205 16.9523C20.4204 16.9523 20.4199 16.9525 20.4191 16.953L20.416 16.9552ZM10.8666 22.4326C10.8666 23.2982 10.195 24 9.36658 24C8.53815 24 7.86658 23.2982 7.86658 22.4326C7.86658 21.567 8.53815 20.8653 9.36658 20.8653C10.195 20.8653 10.8666 21.567 10.8666 22.4326ZM18.0048 24C18.8332 24 19.5048 23.2982 19.5048 22.4326C19.5048 21.567 18.8332 20.8653 18.0048 20.8653C17.1763 20.8653 16.5048 21.567 16.5048 22.4326C16.5048 23.2982 17.1763 24 18.0048 24Z" fill="currentColor"></path>
+              </svg> {{ 'product.buttons.sold_out' | t }}
+          {% endunless %}
+        </span>
+        <span class="atc-button--icon">
+          {%- render 'icon-spinner' -%}
+        </span>
+      </button> 
+</span >  
+    </div>
+ 
+     <!-- <button type="button" class="ProductPageBuyNow sticky-buy-button shopify-payment-button__button--unbranded " id="productPageQuickView" prdvarId="{{ product.first_available_variant.id }}"  prdPrice="{{ product.price | money }}" compPrice="{{ product.compare_at_price_max | money }}" data-testid="Checkout-button" onclick="QuickBuyBtnDesk(this)">{% comment %} Quick Buy {% endcomment %}Buy It Now</button> -->
+     <select id="variantSelectorPrd" style="display:none;">
+                                 {% for variant in product.variants %}
+                                   <option value="{{ variant.id }}" data-compare-price="{{ variant.compare_at_price | money }}" data-sale-price="{{ variant.price | money }}" variant-img="{{ variant.featured_image.src | product_img_url: 'medium' }}">{{ variant.title }}</option>
+                                 {% endfor %}
+                                </select>      
+   <!-- <div id="simpl-checkout-product-v2" class="simpl-button-container"></div> -->
+    <div class="hide_mobile w-full">{% render 'gokwik-buy-now' %}</div>
+{% comment %}
+    {% if show_dynamic_checkout_button %}e
+      {{ form | payment_button }}
+    {% endif %}
+{% endcomment %}
+  </div>
+
+  <div data-payment-terms-reference style="display: none;">
+    {{ form | payment_terms }}
+  </div>
+ {% comment %}
+   {% if customer.id != '' %} 
+    <figer class="wishlist-nodeify main-nodeify" onclick="wishlist_nodify(this);"  customer_id="{{ customer.id }}" customer_email="{{ customer.email }}" handel_item="{{ product.handle }}" item_id="{{ product.id }}">
+       <svg class="" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+    </figer>
+   {% endif %}
+ {% endcomment %}
+  
+  {% if enable_local_pickup %}
+    <div class="surface-pick-up" data-surface-pick-up></div>
+  {% endif %}
+{% endform %}
+
+<div id="product-validator" style="display: none;">Makkpress-Product Validator: Please Select a plan!</div><script src="https://makkpressapps.com/productvalidator/productvalidator-theme-script.js?v=1.0232" data-store="{{ shop.permanent_domain }}" data-product="{{ product.id }}" data-customername="{{ customer.name }}" data-customerphone="{{ customer.phone }}" data-customeremail="{{ customer.email }}"></script>
+ <p id="validation-point" style="display: none; font-weight: bold;color: red;">Invalid zip code. Please enter a valid alphanumeric zip code with a maximum length of 10 characters.</p>
+           
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+    function check_cart(){
+
+setTimeout(function(){
+
+$.ajax({
+  type: 'GET',
+  url: '/cart.js',
+  async: true,
+  dataType: 'json',
+  success: function(cartData) {
+  var cartItems = cartData.items;
+   console.log(cartData);
+    cartItems.forEach(function(item) {
+      var productId = item.product_id;
+
+console.log(productId)
+
+      var pro_id = {{ product.id }};
+
+ if(productId == pro_id){
+
+          $('#AddToCart').children('.atc-button--text').html('Go to Cart <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"> <g id="Complete"><g id="arrow-right">   <g>   <polyline data-name="Right" fill="none" id="Right-2" points="16.4 7 21.5 12 16.4 17" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></polyline> <line fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" x1="2.5" x2="19.2" y1="12" y2="12"></line>  </g>   </g> </g>  </svg>');
+
+          $('#AddToCart_secondary').children('.atc-button--text').html('Go to Cart <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"> <g id="Complete"><g id="arrow-right">   <g>   <polyline data-name="Right" fill="none" id="Right-2" points="16.4 7 21.5 12 16.4 17" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></polyline> <line fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" x1="2.5" x2="19.2" y1="12" y2="12"></line>  </g>   </g> </g>  </svg>')
+
+
+$('#AddToCart').css('background-color','#2eb4ac');
+
+          $('#AddToCart_secondary').css('background-color','#2eb4ac');
+          
+$('#AddToCart').css('color','white');
+
+          $('#AddToCart_secondary').css('color','white');
+
+$('#AddToCart').attr('onclick', 'addToCart();')
+
+$('#AddToCart_secondary').css('color','white');
+
+$('#AddToCart').attr('type','button');
+
+$('#AddToCart_secondary').css('color','white');
+
+        }    
+
+    });
+  }
+});
+
+}, 750);
+
+   
+
+
+    
+}
+   $.ajax({
+  type: 'GET',
+  url: '/cart.js',
+  dataType: 'json',
+  success: function(cartData) {
+    // Access cart item values from the returned cart data
+    var cartItems = cartData.items;
+    
+    // Process the cart items as needed
+    cartItems.forEach(function(item) {
+      var productId = item.product_id;
+
+        if(productId == {{ product.id }}){
+
+          $('#AddToCart').children('.atc-button--text').html('Go to Cart <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"> <g id="Complete"><g id="arrow-right">   <g>   <polyline data-name="Right" fill="none" id="Right-2" points="16.4 7 21.5 12 16.4 17" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></polyline> <line fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" x1="2.5" x2="19.2" y1="12" y2="12"></line>  </g>   </g> </g>  </svg>');
+
+          $('#AddToCart_secondary').children('.atc-button--text').html('Go to Cart <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"> <g id="Complete"><g id="arrow-right">   <g>   <polyline data-name="Right" fill="none" id="Right-2" points="16.4 7 21.5 12 16.4 17" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></polyline> <line fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" x1="2.5" x2="19.2" y1="12" y2="12"></line>  </g>   </g> </g>  </svg>')
+
+
+$('#AddToCart').css('background-color','#2eb4ac');
+
+          $('#AddToCart_secondary').css('background-color','#2eb4ac');
+          
+$('#AddToCart').css('color','white');
+
+          $('#AddToCart_secondary').css('color','white');
+
+$('#AddToCart').attr('onclick', 'addToCart();')
+
+$('#AddToCart_secondary').css('color','white');
+
+$('#AddToCart').attr('type','button');
+
+$('#AddToCart_secondary').css('color','white');
+
+}
+      
+    });
+  },
+  error: function() {
+    // Handle error case
+    console.log('Error retrieving cart data.');
+  }
+});
+
+
+  
+  function addToCart() {
+
+    window.location.href = "/cart";
+
+  }
+
+  function redirectToCart() {
+    window.location.href = "/cart"; 
+  }
+// Abhishek Quick Buy Functionality 
+// $('#productPageQuickView').click(function(){
+//     var firstVariantId = parseInt($(this).attr('prdvarid'));
+//     var qty = parseInt($('quantity-selector__input').val());
+//      data = {
+//       "quantity": qty,
+//       "id": firstVariantId
+      
+//     }
+//     $.ajax({
+//       type: 'POST',
+//       url: '/cart/add.js',
+//       data: JSON.stringify(data),
+//       contentType: 'application/json',
+//       dataType: 'json',
+//       success: function (response) {
+//         console.log('Product added to cart:', response);
+
+//         // window.location.href = '/cart'; 
+//           window.location.href = '/checkout';
+//       },
+//       error: function (error) {
+//         // Handle the error here, if needed
+//         console.error('Error adding product to cart:', error);
+//       }
+//     });
+// });
+// Abhishek Quick Buy Functionality 
+
+// Abhishek code, when value is more than 10 show a warning and disabled plus btn
+var inputfield = $('.quantity-selector__input');
+var errorMsg = $('#maxValueis');
+var inputPlsBtn = $('#PlusButton');
+
+inputfield.on('input', function() {
+  var inputValueA = $(this).val();
+  if (inputValueA > 10) {
+      
+    $(this).val(10);
+    errorMsg.css('display', 'block');
+    // inputPlsBtn.prop('disabled', true);
+    setTimeout(function () {
+      errorMsg.css('display', 'none');
+    }, 10000);
+  } else {
+    setTimeout(function () {
+      // inputPlsBtn.prop('disabled', false);
+    }, 1000);
+    errorMsg.hide();
+  }
+});
+
+// function when value will be more than 10 input to 10 and btn disabled 
+function inputValidation() {
+   console.log('Sab Razi Khushi')
+  var inputField = $(".quantity-selector__input");
+  var plusBtn = $("#PlusButton");
+  var inputVal = parseInt(inputField.val());
+  var maxQty = 10;
+
+  if (inputVal > maxQty) {
+    console.log("Input val is ", inputVal, "Max Qty is ", maxQty);
+    
+    // Set input value to maxQty
+    inputField.val(maxQty -1);
+
+    // Disable the input field
+    inputField.prop("disabled", true);
+  } else {
+    // Enable the input field
+    inputField.prop("disabled", false);
+  }
+}
+
+setTimeout(function(){
+    inputValidation();
+}, 1000);
+
+$('#PlusButton').click(function(){
+    inputValidation();
+})
+  
+
+function QuickBuyBtnDesk(e){
+    var productQuantity = parseInt($('.quantity-selector__input').val());
+    var productVariantId = $(e).attr('prdvarid');
+    var cartData = {
+        id: productVariantId,
+        quantity: productQuantity
+    };
+
+    // Send the POST request to add the item to the cart
+    $.ajax({
+        type: 'POST',
+        url: '/cart/add.js',
+        data: cartData,
+        dataType: 'json',
+        success: function(response) {
+            console.log('Item added to cart:', response);
+
+            // Redirect to checkout after adding to cart
+            window.location.href = '/checkout';
+        },
+        error: function(xhr, status, error) {
+            console.error('Error adding item to cart:', error);
+        }
+    });
+
+}
+
+// secondary Add to Cart Button : 
+function SecondaryAddToCart(elemento) {
+    var topElement = $('#AddToCart');
+    var thisElement = $('.product-sticky-add-to-cart');
+
+    var topElementAdd = `<button id="AppendedCart" class="product-form--atc-button mdc-ripple-surface mdc-ripple-upgraded" type="button" data-product-atc="" onclick="addToCart();" style="background-color: rgb(46, 180, 172); color: white;">
+        <span class="atc-button--text">Go to Cart <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"> <g id="Complete"><g id="arrow-right">   <g>   <polyline data-name="Right" fill="none" id="Right-2" points="16.4 7 21.5 12 16.4 17" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></polyline> <line fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" x1="2.5" x2="19.2" y1="12" y2="12"></line>  </g>   </g> </g>  </svg></span>
+        <span class="atc-button--icon"><svg aria-hidden="true" focusable="false" role="presentation" width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+  <g fill-rule="nonzero" fill="currentColor">
+    <path d="M13 26C5.82 26 0 20.18 0 13S5.82 0 13 0s13 5.82 13 13-5.82 13-13 13zm0-3.852a9.148 9.148 0 1 0 0-18.296 9.148 9.148 0 0 0 0 18.296z" opacity=".29"></path><path d="M13 26c7.18 0 13-5.82 13-13a1.926 1.926 0 0 0-3.852 0A9.148 9.148 0 0 1 13 22.148 1.926 1.926 0 0 0 13 26z"></path>
+  </g>
+</svg></span>
+      </button>`
+
+     var newContent = `<div class="product-sticky-add-to-cart">
+  <div class="product-form--atc">
+    <div class="product-form__action-wrapper">
+      <span>
+        <a href="/cart">
+          <button id="" class="product-form--atc-button mdc-ripple-surface mdc-ripple-upgraded" type="button" data-product-atc="" onclick="SecondaryAddToCart(this)" style="background-color: rgb(46, 180, 172); color: white;">
+            <span class="atc-button--text">Go to Cart <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"> <g id="Complete"><g id="arrow-right"> <g> <polyline data-name="Right" fill="none" id="Right-2" points="16.4 7 21.5 12 16.4 17" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></polyline> <line fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" x1="2.5" x2="19.2" y1="12" y2="12"></line> </g> </g> </g> </svg></span>
+            <span class="atc-button--icon"><svg aria-hidden="true" focusable="false" role="presentation" width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+                <g fill-rule="nonzero" fill="currentColor">
+                  <path d="M13 26C5.82 26 0 20.18 0 13S5.82 0 13 0s13 5.82 13 13-5.82 13-13 13zm0-3.852a9.148 9.148 0 1 0 0-18.296 9.148 9.148 0 0 0 0 18.296z" opacity=".29"></path>
+                  <path d="M13 26c7.18 0 13-5.82 13-13a1.926 1.926 0 0 0-3.852 0A9.148 9.148 0 0 1 13 22.148 1.926 1.926 0 0 0 13 26z"></path>
+                </g>
+              </svg></span>
+          </button>
+        </a>
+      </span>
+    </div>
+  </div>
+</div>
+`
+
+    var qtyInput = parseInt($('.quantity-selector__input').val());
+    var firstVariantId = $('#AddToCart_secondary').attr('var-id');
+    var data = {
+        "quantity": qtyInput,
+        "id": firstVariantId
+    };
+    $.ajax({
+        type: 'POST',
+        url: '/cart/add.js',
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        dataType: 'json',
+        success: function (response) {
+           fetch('/cart.js')
+                .then(response => response.json())
+                .then(cartData => {
+                    var totalcount = cartData.item_count;
+                    $('.site-header-cart--count').addClass('visible');
+                    $('.site-header-cart--count').attr('data-header-cart-count', totalcount);
+                });
+
+           setTimeout(function(){
+  thisElement.replaceWith(newContent);
+          topElement.replaceWith(topElementAdd);
+               }, 1000)
+       
+        },
+        error: function (error) {
+            console.error('Error adding product to cart:', error);
+        }
+    });
+}
+
+
+// test code to remove extra buttons on product page
+$(document).ready(function() {
+  function handleWindowSize() {
+    var windowWidth = $(window).width();
+    var windowHeight = $(window).height();
+    console.log('Window Size - Width: ' + windowWidth + ', Height: ' + windowHeight);
+
+    if (windowWidth < 767) {
+      var parentDiv = $('.product-form--atc');
+      parentDiv.find('span#pp-adc').hide();
+      parentDiv.find('button#productPageQuickView').hide();
+    }
+  }
+
+  handleWindowSize();
+
+  $(window).resize(function() {
+    handleWindowSize();
+  });
+});
+
+
+
+
+</script> 

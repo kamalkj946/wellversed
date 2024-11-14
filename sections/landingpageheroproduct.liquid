@@ -1,0 +1,75 @@
+{% schema %}
+{
+  "name": "Single Product Feature",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Select Collection"
+    },
+    {
+      "type": "number",
+      "id": "product_limit",
+      "label": "Number of Products",
+      "default": 1
+    }
+  ],
+  "presets": [
+    {
+      "name": "Single Product Feature",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}
+
+<section class="single-product-feature">
+  <div class="container">
+    
+    <div class="product-flex-row">
+      {% assign products = collections[section.settings.collection].products | sort: 'created_at' | reverse %}
+      {% for product in products limit: section.settings.product_limit %}
+        <!-- Left div: Product image and gallery -->
+        <div class="product-image-gallery">
+          <img id="mainProductImage" class="main-product-image" src="{{ product.featured_image | img_url: 'large' }}" alt="{{ product.title }}">
+          <!-- Gallery Images (if available) -->
+          {% if product.images.size > 1 %}
+            <div class="product-gallery landingpageGallery">
+              {% for image in product.images %}
+                <img class="gallery-thumbnail" src="{{ image | img_url: 'small' }}" alt="{{ product.title }}" onclick="document.getElementById('mainProductImage').src='{{ image | img_url: 'large' }}'">
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Right div: Product details -->
+        <div class="product-details landingProduct">
+          <h3 class="product-title lpTtitle">{{ product.title }}</h3>
+          
+          <!-- Product description -->
+          <p class="product-description">{{ product.description | strip_html | truncate: 100 }}</p>
+          
+          <!-- Product prices with custom sale price metafield -->
+          {% assign sale_price = product.metafields.custom.sale_price_amazon %}
+          {% if sale_price %}
+            <p class="sale-price">Sale: {{ sale_price | times: 100 | money }}</p>
+            <p class="regular-price">Regular: <s>{{ product.price | money }}</s></p>
+          {% else %}
+            <p class="regular-price">Regular: {{ product.price | money }}</p>
+          {% endif %}
+          
+          <!-- Using the custom metafield for button link -->
+          {% assign button_link = product.metafields.custom.buttonlink %}
+          {% if button_link %}
+            <!-- <a href="{{ button_link }}" class="buy-now-btn" target="_blank">Buy On Amazon</a> -->
+            <a href="{{ button_link }}" class="buy-now-btn" target="_blank">
+      <img src="https://cdn.shopify.com/s/files/1/0233/6459/9885/files/WH___Buy_now___Amazon_Button.svg?v=1729055573" alt="Amazon Logo" class="amazon-logo">
+</a>
+          {% else %}
+            <a href="#" class="buy-now-btn disabled">No Link Available</a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>

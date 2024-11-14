@@ -1,0 +1,125 @@
+{% if section.settings.show_product_recommendations %}
+  {% assign product_limit = 4 %}
+
+  <script
+    type="application/json"
+    data-section-type="static-product-recommendations"
+    data-section-id="{{ section.id }}"
+    data-section-data
+    >
+{
+  "settings": {
+    "limit": {{ product_limit }}
+  },
+    "productId": {{ product.id | json }},
+    "sectionId": {{ section.id | json }}
+}
+  </script>
+
+
+  
+
+
+
+  <section
+    class="product-section--container product-row--container product-recommendations--container"
+    data-html
+    data-product-recommendations
+    >
+    {% if recommendations.products_count > 0 %}
+      <h2 class="product-section--title product-recommendations--title home-section--title">
+        {{ section.settings.product_recommendations_heading }} <span><a href="">{{ section.settings.view-all | escape }}</a></span>
+      </h2>
+
+
+    <ul
+      class="product-section--content product-row"
+      data-product-row
+      >
+    
+      {% for product in recommendations.products limit: product_limit %}
+        {%
+          render 'product-grid-item',
+          product: product
+        %}
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+
+  {% render 'quick-shop' %}
+{% endif %}
+
+{% schema %}
+{
+  "name": "t:sections.product_recommendations.name",
+  "class": "product-recommendations--section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_product_recommendations",
+      "label": "t:sections.product_recommendations.show_product_recommendations.label",
+      "info": "t:sections.product_recommendations.show_product_recommendations.info",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "product_recommendations_heading",
+      "label": "t:sections.product_recommendations.product_recommendations_heading.label",
+      "default": "You may also like"
+    },
+    {
+      "type": "text",
+      "id": "view-all",
+      "label": "View All"
+    }
+  ]
+}
+{% endschema %}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $.ajax({
+    type: 'POST',
+    url: 'https://makkpressapps.com/do_not_delete/fwdwishlist/get.php',
+    data: { customer_id: $('#Add_to_wishlist').attr('customer_id') },
+    success: function(response) {
+      const productData = response;
+      var currentProductId = '{{ product.id }}';
+
+      productData.map(items => {
+        console.log(items.item_id);
+
+        setTimeout(function() {
+          $('li.productgrid--item').each(function() {
+            var product_id = $(this).find('label').attr('labelid');
+
+            if (items.item_id == product_id) {
+              $(this).find('svg').attr('fill', 'red');
+            }
+          });
+
+          let eventbtn = document.querySelectorAll(`[item_id="${items.item_id}"]`);
+          let labelid = document.querySelectorAll(`[labelid="${items.item_id}"]`);
+          let svg = document.querySelectorAll(`[svgid="${items.item_id}"]`);
+
+          for (var i = 0; i < svg.length; i++) {
+            eventbtn[i].setAttribute('onclick', 'wislist_nodify_R(this)');
+            eventbtn[i].setAttribute('id', 'Added_to_wishlist');
+            labelid[i].setAttribute('for', 'Added_to_wishlist');
+            labelid[i].classList.add('Added_to_wishlist');
+
+            if (items.item_id === currentProductId) {
+              labelid[i].innerHTML =
+                "<img loading="lazy" src='https://static1.hkrtcdn.com/hknext/static/media/common/variant/wishlist/ok.svg'><span>Added to wishlist <a href='https://shop-wellversed.myshopify.com/pages/wishlist'>View All</a></span>";
+            } else {
+              labelid[i].innerHTML = 'Add to Wishlist';
+            }
+          }
+        }, 2000);
+      });
+    }
+  });
+</script>
+
+
