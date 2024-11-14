@@ -19,9 +19,9 @@ var cart = {{ cart | json }}
 var templateName = '{{template.name}}'
 </script>
 
-<script src="https://{{ env }}.gokwik.co/merchant-integration/build/merchant.integration.js?v4"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script>
+<script {% unless template contains 'cart' %}type="load" d-{% endunless %}src="https://{{ env }}.gokwik.co/merchant-integration/build/merchant.integration.js?v4"></script>
+<script {% unless template contains 'cart' %}type="load" d-{% endunless %}src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script {% unless template contains 'cart' %}type="load"{% endunless %}>
   window.addEventListener('gokwikLoaded', e => {
 
    $('.gokwik-checkout button').prop('disabled', false);

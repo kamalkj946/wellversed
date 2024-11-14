@@ -1,0 +1,45 @@
+<style>
+html:not(.xh) .hero-slider .item:nth-child(n+2) img {
+    /* opacity: 0 !important; */
+}
+html:not(.scld) .hero-slider:not(.flickity-enabled) .item:nth-child(n+2) {
+    display: none;
+}
+@media (max-width: 549px){
+html:not(.scld) .hero-slider a.mobile img {
+    max-height: 182px !important;
+    min-height: 182px !important;
+}
+}
+@media (min-width: 1200px){
+html:not(.scld) .hero-slider a.desktop img {
+    max-height: 373.25px !important;
+    min-height: 373.25px !important;
+}
+}
+html:not(.scld) .hero-slider {
+    display: block !important;
+}
+html.customfit-invisible-preinit-block:not(.scld) {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+html:not(.scld) [data-done="Loaded"] + [data-rimg-canvas]{
+    opacity: 0;
+    visibility: hidden;
+    animation: none;
+}
+html:not(.scld) .product-gallery--image img[data-rimg=lazy] {
+  opacity: 1 !important;
+}
+html:not(.scld) .product-gallery--viewer:not(.flickity-enabled) figure.product-gallery--media:not([data-gallery-selected="true"]) img{
+    opacity: 0 !important;
+}
+
+.review-veg .reviews-js, .makkprovalclass {
+    display: none;
+}
+html:not(.scld) button#grid_AddToCart {
+    pointer-events: none;
+}
+</style>

@@ -1,0 +1,22 @@
+<div id="shopify-block-859976262161311183" class="shopify-block shopify-app-block"><script defer>
+ const allConfigData = {"config-138242359548":{{ shop.metafields.searchtap.config-138242359548.value | json }},"config-138385654012":{{ shop.metafields.searchtap.config-138385654012.value | json }},"config-backup":{{ shop.metafields.searchtap.config-backup.value | json }},"custom_css":{{ shop.metafields.searchtap.custom_css.value | json}},"custom_js":{{ shop.metafields.searchtap.custom_js.value | json }}};
+
+ const configKey = `config-${window.Shopify.theme.id}`;
+
+ window.searchtapConfig = allConfigData[configKey] ?? allConfigData['config-backup'];
+
+{{ shop.metafields.searchtap.custom_js }}
+
+</script>
+
+<script type="load" d-src="https://cdn.shopify.com/extensions/8d45c47c-b9de-4f10-93b9-a82724798107/searchtap-product-search-22/assets/searchtap.js"></script>
+
+<div id="st-autocomplete-container"></div>
+
+<div id="st-search-container"></div>
+
+<style>
+{{ shop.metafields.searchtap.custom_css }}
+</style>
+
+</div>

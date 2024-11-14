@@ -328,9 +328,9 @@
 
   <img
     {% if rimg_format == '' %}
-      src="{{ img | img_url: rimg_size, crop: crop }}"
+      src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" data-li="st" d-src="{{ img | img_url: rimg_size, crop: crop }}"
     {% else %}
-      src="{{ img | img_url: rimg_size, crop: crop, format: rimg_format }}"
+      src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" data-li="st" d-src="{{ img | img_url: rimg_size, crop: crop, format: rimg_format }}"
     {% endif %}
     alt="{{ rimg_alt }}"
 
@@ -341,10 +341,9 @@
       data-rimg-max="{{ img.width }}x{{ img.height }}"
       data-rimg-crop="{{ crop }}"
       {% if placeholder %}data-rimg-placeholder="{{ placeholder }}"{% endif %}
-      srcset="{{ rimg_placeholder }}"
     {% else %}
       data-rimg
-      srcset="{{ rimg_density_srcset }}"
+      dt="{{ rimg_density_srcset }}"
     {% endif %}
 
     {% if class != blank %}class="{{ class }}"{% endif %}

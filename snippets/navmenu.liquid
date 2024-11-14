@@ -87,7 +87,7 @@
           {% assign menu-icon = menu_item.title | handleize %}
         {% capture  imagePath %}{{ menu-icon | append: ".png" | file_url }}{% endcapture %}
          {% if imagePath != blank %}           
-           <span  class="img-icon"><img src="{{ imagePath }}" alt="nav-icon" /></span>
+           <span  class="img-icon"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" data-li="st" d-src="{{ imagePath }}" alt="nav-icon" /></span>
          {% endif %}
         {{ menu_item.title }}
     
@@ -150,7 +150,7 @@
         {% assign menu-icon = menu_item.title | handleize %}
         {% capture  imagePath %}{{ menu-icon | append: ".png" | file_url }}{% endcapture %}
          {% if imagePath != blank %}           
-           <span  class="img-icon"><img src="{{ imagePath }}" alt="nav-icon" /></span>
+           <span  class="img-icon"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" data-li="st" d-src="{{ imagePath }}" alt="nav-icon" /></span>
          {% endif %}
         {{ menu_item.title }}        
       </a>

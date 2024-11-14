@@ -1,11 +1,13 @@
-<script>
+
+  
+<script type="lload">
   const avadaLightJsExclude = ['cdn.nfcube.com', 'assets/ecom.js', 'variant-title-king', 'linked_options_variants', 'smile-loader.js', 'smart-product-filter-search', 'rivo-loyalty-referrals', 'avada-cookie-consent', 'consentmo-gdpr', 'quinn'];
   const avadaLightJsInclude = ['https://www.googletagmanager.com/', 'https://connect.facebook.net/', 'https://business-api.tiktok.com/', 'https://static.klaviyo.com/'];
   window.AVADA_SPEED_BLACKLIST = avadaLightJsInclude.map(item => new RegExp(item, 'i'));
   window.AVADA_SPEED_WHITELIST = avadaLightJsExclude.map(item => new RegExp(item, 'i'));
 </script>
 
-<script>
+<script type="lload">
   const isSpeedUpEnable = !1731141058399 || Date.now() < 1731141058399;
   if (isSpeedUpEnable) {
     const avadaSpeedUp=1;

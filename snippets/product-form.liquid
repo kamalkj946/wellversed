@@ -324,12 +324,11 @@
   {% endif %}
 {% endform %}
 
-<div id="product-validator" style="display: none;">Makkpress-Product Validator: Please Select a plan!</div><script src="https://makkpressapps.com/productvalidator/productvalidator-theme-script.js?v=1.0232" data-store="{{ shop.permanent_domain }}" data-product="{{ product.id }}" data-customername="{{ customer.name }}" data-customerphone="{{ customer.phone }}" data-customeremail="{{ customer.email }}"></script>
+<div id="product-validator" style="display: none;">Makkpress-Product Validator: Please Select a plan!</div>
+<script type="load" d-src="https://makkpressapps.com/productvalidator/productvalidator-theme-script.js?v=1.0232" data-store="{{ shop.permanent_domain }}" data-product="{{ product.id }}" data-customername="{{ customer.name }}" data-customerphone="{{ customer.phone }}" data-customeremail="{{ customer.email }}"></script>
  <p id="validation-point" style="display: none; font-weight: bold;color: red;">Invalid zip code. Please enter a valid alphanumeric zip code with a maximum length of 10 characters.</p>
            
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
+<script type="load">
 
     function check_cart(){
 

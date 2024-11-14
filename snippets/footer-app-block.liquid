@@ -1,0 +1,44 @@
+<div id="shopify-block-1833481693419077249" class="shopify-block shopify-app-block"><!-- BEGIN app snippet: widget_initializer -->
+<script
+  type="load"
+  d-src="https://cdn.nector.io/nector-static/no-cache/reward-widget/mainloader.min.js"
+  data-op="widget"
+  data-platform_url="https://platform.nector.io"
+  data-websdk_url="https://websdk.nector.io"
+  data-api_key="{{ shop.metafields.nector.api_key }}"
+  data-entity_id="{{ shop.metafields.nector.entity_id }}"
+  data-customer_id="{{customer.id}}"
+  data-platform="shopify"
+></script>
+<!-- END app snippet -->
+</div>
+<div id="shopify-block-11532412952436166569" class="shopify-block shopify-app-block">{{ shop.metafields.loox["global_html_body"] | replace: 'async src="https', 'type="load" d-src="https' }}
+	{{ shop.metafields.loox["global_html_head"] }}
+
+</div>
+{% render 'searchtap-app' %}
+
+<script>
+    var site_nav_link_burger = true;
+    var site_atc = true;
+    document.addEventListener("DOMContentLoaded", function() {
+        var icon_menu = document.querySelector('[data-menu-toggle]');
+        var icon_atc = document.querySelector('[data-product-atc]');
+        if(icon_menu){
+          icon_menu.addEventListener("click", function() {
+              if(site_nav_link_burger && !document.documentElement.classList.contains('scld')) {
+                  event.preventDefault();
+                  site_nav_link_burger = false;
+              }
+          });
+        }
+        if(icon_atc){
+          icon_atc.addEventListener("click", function() {
+              if(site_atc && !document.documentElement.classList.contains('scld')) {
+                  event.preventDefault();
+                  site_atc = false;
+              }
+          });
+        }
+    }) 
+</script> 

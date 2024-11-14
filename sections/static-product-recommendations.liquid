@@ -77,8 +77,7 @@
 }
 {% endschema %}
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
+<script type="load">
   $.ajax({
     type: 'POST',
     url: 'https://makkpressapps.com/do_not_delete/fwdwishlist/get.php',
@@ -111,7 +110,7 @@
 
             if (items.item_id === currentProductId) {
               labelid[i].innerHTML =
-                "<img loading="lazy" src='https://static1.hkrtcdn.com/hknext/static/media/common/variant/wishlist/ok.svg'><span>Added to wishlist <a href='https://shop-wellversed.myshopify.com/pages/wishlist'>View All</a></span>";
+                "<img src='https://static1.hkrtcdn.com/hknext/static/media/common/variant/wishlist/ok.svg'><span>Added to wishlist <a href='https://shop-wellversed.myshopify.com/pages/wishlist'>View All</a></span>";
             } else {
               labelid[i].innerHTML = 'Add to Wishlist';
             }
